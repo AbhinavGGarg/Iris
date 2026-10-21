@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit)",
+      "PowerShell(pip install google-genai)",
+      "PowerShell(& \"C:\\\\Users\\\\Sai\\\\Documents\\\\GitHub\\\\hackdavis26\\\\backend\\\\venv\\\\Scripts\\\\python.exe\" -m pip install google-genai)"
+    ]
+  }
+}
