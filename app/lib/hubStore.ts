@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { CharacterSlug } from "./characters";
 
-export type Topic = "science" | "math" | "spelling_asl";
+export type Topic = "science" | "math" | "spelling_asl" | "feelings";
 
 type HubState = {
   selectedTopic: Topic | null;
@@ -40,11 +40,12 @@ export const TOPIC_TO_ROUTE: Record<Topic, string> = {
   science: "/play/maze",
   math: "/play/boss",
   spelling_asl: "/play/adventure",
+  feelings: "/play/garden",
 };
 
 function migrateTopic(raw: unknown): Topic | null {
   if (raw === null || raw === undefined) return null;
-  if (raw === "science" || raw === "math" || raw === "spelling_asl") return raw;
+  if (raw === "science" || raw === "math" || raw === "spelling_asl" || raw === "feelings") return raw;
   if (raw === "reading" || raw === "asl") return "spelling_asl";
   return null;
 }
