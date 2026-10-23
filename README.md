@@ -14,7 +14,7 @@ Most educational apps quietly assume a child can read dense text, aim a mouse, a
 
 ## What's inside
 
-Iris has three worlds. Each one pairs a subject with a different way of playing.
+Iris has four worlds. Each one pairs a subject with a different way of playing.
 
 **🧮 Boss Battle — Math**
 Face off against a boss in a shadowy arena. Each correct answer lands a hit. Questions range from simple arithmetic up to early calculus, and players who prefer to work it out by hand can sketch on a whiteboard that Gemini reads and checks.
@@ -25,11 +25,14 @@ Walk a forest trail, answer reading and spelling challenges, and collect keys to
 **🌀 Maze Quest — Science & Exploration**
 Find your way through a foggy, procedurally built hedge maze. Every science question you answer correctly earns another step toward the exit.
 
+**🌷 Feelings Garden — Social-Emotional Learning**
+Visit four neighbors in a sunny village. Each one has a little moment (a dropped ice cream, a toppled block tower, a thunderstorm, a birthday), and their face shows how they feel. Name the feeling, then pick a kind way to help, and a flower blooms by their house. There's no losing here: a wrong guess gets a gentle clue. You can play by talking, or tap the picture cards with "Play without voice".
+
 ---
 
 ## How a session flows
 
-1. Open Iris and choose a subject: **Math**, **ASL**, or **Explore**.
+1. Open Iris and choose a subject: **Math**, **ASL**, **Explore**, or **Feelings**.
 2. Pick a companion: Brave Bear, Clever Fox, Helper Robot, or Curious Cat.
 3. Jump in. Your companion talks you through the whole game in its own personality, offering hints and celebrating your wins.
 
@@ -60,7 +63,8 @@ app/
 ├── play/
 │   ├── boss/             math boss battle
 │   ├── adventure/        reading + ASL forest trail
-│   └── maze/             science maze
+│   ├── maze/             science maze
+│   └── garden/           feelings garden
 ├── components/           3D scenes, HUDs, and voice bridges for each game
 ├── lib/                  stores, question banks, and companion personas
 └── api/                  voice-session auth and drawing grader
