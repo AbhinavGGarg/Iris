@@ -18,7 +18,7 @@ const CHARACTER_NAMES: Record<CharacterSlug, string> = {
 
 type FloatNum = { id: number; text: string; side: "boss" | "player" };
 
-const cinzel = { fontFamily: "var(--font-cinzel), serif" } as const;
+const displayFont = { fontFamily: "var(--font-display)" } as const;
 
 export default function BossHUD() {
   const router = useRouter();
@@ -145,36 +145,33 @@ export default function BossHUD() {
 
       <div className="pointer-events-none absolute inset-0 flex flex-col">
         {/* Header */}
-        <header className="pointer-events-auto flex items-center justify-between gap-3 border-b border-white/8 bg-black/70 px-6 py-3 backdrop-blur-sm">
+        <header className="pointer-events-auto flex items-center justify-between gap-3 px-5 py-4">
           <button
             onClick={() => {
               if (connected) conv.endSession();
               router.push("/");
             }}
-            className="border border-white/20 px-4 py-1.5 text-[10px] uppercase tracking-[0.25em] text-white/55 transition hover:border-white/40 hover:text-white/90"
-            style={cinzel}
+            className="iris-btn iris-btn-soft px-4 py-2 text-sm"
           >
-            ← Back
+            ← Home
           </button>
 
           <div className="flex items-center gap-3">
             <span
-              className="text-sm font-bold uppercase tracking-[0.2em] text-white"
-              style={cinzel}
+              className="iris-pill text-base"
+              style={displayFont}
             >
               Boss Battle
             </span>
             {status === "battling" && (
               <>
                 <span
-                  className="border border-white/15 bg-black/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-white/50"
-                  style={cinzel}
+                  className="iris-pill"
                 >
                   Turn {turn}
                 </span>
                 <span
-                  className="border border-amber-500/40 bg-black/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-amber-400/80"
-                  style={cinzel}
+                  className="iris-pill !bg-amber-100 !text-amber-700"
                 >
                   Tier {tier}
                 </span>
@@ -182,31 +179,30 @@ export default function BossHUD() {
             )}
           </div>
 
-          <div className="w-16" />
+          <div className="w-20" />
         </header>
 
         {/* HP Bars */}
         {status === "battling" && (
-          <div className="pointer-events-auto mx-4 mt-3 grid grid-cols-2 gap-4 border border-white/10 bg-black/50 p-3 backdrop-blur-md">
+          <div className="iris-panel pointer-events-auto mx-auto mt-1 grid w-[calc(100%-2.5rem)] max-w-3xl grid-cols-2 gap-6 !rounded-3xl px-5 py-4">
             {/* Player HP */}
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80"
-                  style={cinzel}
+                  className="text-sm font-semibold text-ink"
+                  style={displayFont}
                 >
                   {playerName}
                 </span>
                 <span
-                  className={`text-[10px] tracking-wide ${playerHPPct <= 25 ? "animate-pulse text-red-300" : "text-white/50"}`}
-                  style={cinzel}
+                  className={`text-xs font-bold ${playerHPPct <= 25 ? "animate-pulse text-rose-500" : "text-ink-soft"}`}
                 >
                   {playerHP}/{MAX_HP}
                 </span>
               </div>
-              <div className="relative h-2 overflow-hidden bg-white/10">
+              <div className="relative h-3 overflow-hidden rounded-full bg-iris-50">
                 <div
-                  className={`h-full bg-gradient-to-r ${playerHPColor} transition-all duration-600 ease-out`}
+                  className={`h-full rounded-full bg-gradient-to-r ${playerHPColor} transition-all duration-600 ease-out`}
                   style={{ width: `${playerHPPct}%` }}
                 />
               </div>
@@ -216,21 +212,20 @@ export default function BossHUD() {
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80"
-                  style={cinzel}
+                  className="text-sm font-semibold text-ink"
+                  style={displayFont}
                 >
                   Infernal Titan
                 </span>
                 <span
-                  className={`text-[10px] tracking-wide ${bossHPPct <= 25 ? "animate-pulse text-amber-300" : "text-white/50"}`}
-                  style={cinzel}
+                  className={`text-xs font-bold ${bossHPPct <= 25 ? "animate-pulse text-amber-600" : "text-ink-soft"}`}
                 >
                   {bossHP}/{MAX_HP}
                 </span>
               </div>
-              <div className="relative h-2 overflow-hidden bg-white/10">
+              <div className="relative h-3 overflow-hidden rounded-full bg-iris-50">
                 <div
-                  className={`h-full bg-gradient-to-r ${bossHPColor} transition-all duration-600 ease-out`}
+                  className={`h-full rounded-full bg-gradient-to-r ${bossHPColor} transition-all duration-600 ease-out`}
                   style={{ width: `${bossHPPct}%` }}
                 />
               </div>
@@ -255,8 +250,7 @@ export default function BossHUD() {
                     </div>
                   ))}
                 <div
-                  className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-2 border border-rose-500/30 bg-rose-950/60 px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.3em] text-rose-300/90 backdrop-blur-md"
-                  style={cinzel}
+                  className="iris-pill absolute left-1/2 top-0 -translate-x-1/2 -translate-y-2 !text-rose-600"
                 >
                   Infernal Titan
                 </div>
@@ -278,17 +272,16 @@ export default function BossHUD() {
 
               <div
                 key={bubbleKey}
-                className="center-card pointer-events-none mx-auto mb-2 w-full max-w-xl border border-amber-500/20 bg-black/70 p-4 shadow-2xl backdrop-blur-md"
+                className="center-card iris-panel pointer-events-none mx-auto mb-2 w-full max-w-xl p-5"
               >
                 <div
-                  className="text-[9px] font-semibold uppercase tracking-[0.3em] text-amber-400/70"
-                  style={cinzel}
+                  className="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-600"
                 >
                   Game Master
                 </div>
                 <div
-                  className="mt-1 text-lg font-semibold leading-snug text-white"
-                  style={cinzel}
+                  className="mt-2 text-xl font-semibold leading-snug text-ink"
+                  style={displayFont}
                 >
                   {lastAgentMessage}
                 </div>
@@ -299,7 +292,7 @@ export default function BossHUD() {
 
         {/* Bottom controls */}
         {status === "battling" && (
-          <div className="pointer-events-auto flex items-center gap-3 border-t border-white/8 bg-black/60 p-4 backdrop-blur-sm">
+          <div className="pointer-events-auto mx-auto mb-5 flex w-[calc(100%-2.5rem)] max-w-3xl items-center gap-2 rounded-full bg-white p-2 shadow-[0_2px_0_rgba(30,26,58,0.08),0_18px_40px_-18px_rgba(10,8,30,0.55)]">
             <TypeAnswer
               onSubmit={(text) => conv.sendUserMessage(text)}
               disabled={!connected}
@@ -307,31 +300,28 @@ export default function BossHUD() {
             {connected && (
               <button
                 onClick={() => conv.setMuted(!muted)}
-                className={`shrink-0 border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition ${
+                className={`iris-btn shrink-0 px-4 py-2 text-sm ${
                   muted
-                    ? "border-amber-500/60 text-amber-400 hover:bg-amber-500/10"
-                    : "border-rose-500/40 text-rose-400/70 hover:border-rose-400 hover:text-rose-300"
+                    ? "iris-btn-primary"
+                    : "bg-rose-50 text-rose-600 hover:bg-rose-100"
                 }`}
-                style={cinzel}
               >
                 {muted ? "Listen" : "Mute"}
               </button>
             )}
             <button
               onClick={() => whiteboardOpen ? closeWhiteboard() : openWhiteboard()}
-              className={`shrink-0 border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition ${
+              className={`iris-btn shrink-0 px-4 py-2 text-sm ${
                 whiteboardOpen
-                  ? "border-amber-500/60 text-amber-400 hover:bg-amber-500/10"
-                  : "border-white/20 text-white/55 hover:border-white/40 hover:text-white/90"
+                  ? "bg-amber-400 text-amber-950 hover:bg-amber-300"
+                  : "bg-amber-50 text-amber-700 hover:bg-amber-100"
               }`}
-              style={cinzel}
             >
               Whiteboard
             </button>
             <button
               onClick={stop}
-              className="shrink-0 border border-rose-500/40 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-rose-400/70 transition hover:border-rose-400 hover:text-rose-300"
-              style={cinzel}
+              className="iris-btn shrink-0 bg-iris-50 px-4 py-2 text-sm text-ink-soft hover:bg-iris-100"
             >
               Retreat
             </button>
@@ -340,8 +330,7 @@ export default function BossHUD() {
 
         {error && status !== "idle" && (
           <div
-            className="pointer-events-auto absolute left-1/2 top-20 max-w-sm -translate-x-1/2 border border-rose-400/40 bg-rose-500/10 px-4 py-2 text-center text-xs text-rose-200 backdrop-blur-md"
-            style={cinzel}
+            className="pointer-events-auto absolute left-1/2 top-20 max-w-sm -translate-x-1/2 rounded-2xl bg-rose-50 px-4 py-2.5 text-center text-sm font-semibold text-rose-600 shadow-lg"
           >
             {error}
           </div>
@@ -351,35 +340,28 @@ export default function BossHUD() {
       {/* Idle splash */}
       {status === "idle" && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="center-card pointer-events-auto mx-6 w-full max-w-md border border-amber-500/30 bg-black/80 p-8 text-center shadow-2xl backdrop-blur-md">
+          <div className="center-card iris-panel pointer-events-auto mx-6 w-full max-w-md p-8 text-center">
             <div
-              className="text-3xl font-black uppercase tracking-[0.15em] text-white"
-              style={{
-                ...cinzel,
-                textShadow: "0 0 60px rgba(200,164,60,0.2), 0 2px 4px rgba(0,0,0,0.8)",
-              }}
+              className="text-3xl font-semibold text-ink"
+              style={displayFont}
             >
               Boss Battle
             </div>
-            <p
-              className="mt-3 text-[11px] uppercase tracking-[0.2em] text-white/40"
-              style={cinzel}
-            >
-              The Infernal Titan Awaits
+            <p className="mt-1 text-sm font-bold text-rose-500">
+              The Infernal Titan awaits
             </p>
-            <p className="mt-4 text-sm leading-relaxed tracking-wide text-white/70" style={cinzel}>
+            <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
               Answer math questions fast to deal damage. One wrong answer — the boss strikes back!
             </p>
             <button
               onClick={start}
               disabled={starting}
-              className="mt-6 border border-amber-500 px-10 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-amber-400 transition hover:bg-amber-500/10 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] disabled:opacity-50"
-              style={cinzel}
+              className="iris-btn iris-btn-primary mt-6 px-10 py-3.5 text-lg"
             >
               {starting ? "Connecting..." : "Start Battle"}
             </button>
             {error && (
-              <div className="mt-3 text-xs text-rose-300" style={cinzel}>{error}</div>
+              <div className="mt-3 rounded-2xl bg-rose-50 p-3 text-sm font-semibold text-rose-600">{error}</div>
             )}
           </div>
         </div>
@@ -388,33 +370,26 @@ export default function BossHUD() {
       {/* Victory screen */}
       {status === "victory" && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="center-card pointer-events-auto mx-6 w-full max-w-lg border border-amber-500/40 bg-black/80 px-12 py-10 text-center shadow-2xl backdrop-blur-md">
+          <div className="center-card iris-panel pointer-events-auto mx-6 w-full max-w-lg px-12 py-10 text-center">
             <div
-              className="text-4xl font-black uppercase tracking-[0.15em] text-amber-300"
-              style={{
-                ...cinzel,
-                textShadow: "0 0 60px rgba(200,164,60,0.3)",
-              }}
+              className="text-4xl font-semibold text-iris-600"
+              style={displayFont}
             >
-              Victory
+              Victory!
             </div>
-            <p
-              className="mt-3 text-[11px] uppercase tracking-[0.2em] text-white/40"
-              style={cinzel}
-            >
-              The Infernal Titan Falls
+            <p className="mt-1 text-base font-bold text-emerald-600">
+              The Infernal Titan falls
             </p>
-            <p className="mt-4 text-sm tracking-wide text-white/80" style={cinzel}>
+            <p className="mt-3 text-[15px] text-ink-soft">
               You answered{" "}
-              <span className="font-bold text-amber-300">{correctAnswers}</span>{" "}
+              <span className="font-bold text-iris-600">{correctAnswers}</span>{" "}
               questions correctly!
             </p>
             <button
               onClick={() => { conv.endSession(); reset(); }}
-              className="mt-6 border border-amber-500 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-amber-400 transition hover:bg-amber-500/10"
-              style={cinzel}
+              className="iris-btn iris-btn-primary mt-6 px-10 py-3.5 text-lg"
             >
-              Fight Again
+              Fight again
             </button>
           </div>
         </div>
@@ -423,30 +398,26 @@ export default function BossHUD() {
       {/* Defeat screen */}
       {status === "defeat" && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="center-card pointer-events-auto mx-6 w-full max-w-lg border border-rose-500/30 bg-black/80 px-12 py-10 text-center shadow-2xl backdrop-blur-md">
+          <div className="center-card iris-panel pointer-events-auto mx-6 w-full max-w-lg px-12 py-10 text-center">
             <div
-              className="text-4xl font-black uppercase tracking-[0.15em] text-rose-300"
-              style={cinzel}
+              className="text-4xl font-semibold text-ink"
+              style={displayFont}
             >
-              Defeated
+              So close!
             </div>
-            <p
-              className="mt-3 text-[11px] uppercase tracking-[0.2em] text-white/40"
-              style={cinzel}
-            >
-              The Titan Stands Victorious
+            <p className="mt-1 text-base font-bold text-rose-500">
+              The Titan is still standing
             </p>
-            <p className="mt-4 text-sm text-white/80">
+            <p className="mt-3 text-[15px] text-ink-soft">
               Math training never ends — you got{" "}
-              <span className="font-bold text-rose-300">{correctAnswers}</span>{" "}
+              <span className="font-bold text-iris-600">{correctAnswers}</span>{" "}
               correct.
             </p>
             <button
               onClick={() => { conv.endSession(); reset(); }}
-              className="mt-6 border border-rose-500/60 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-rose-400 transition hover:bg-rose-500/10"
-              style={cinzel}
+              className="iris-btn iris-btn-primary mt-6 px-10 py-3.5 text-lg"
             >
-              Try Again
+              Try again
             </button>
           </div>
         </div>
@@ -472,11 +443,10 @@ function TypeAnswer({
         onSubmit(t);
         setText("");
       }}
-      className="flex flex-1 items-center gap-2 border border-white/15 bg-black/40 p-1 pl-3 backdrop-blur-md"
+      className="flex flex-1 items-center gap-2 rounded-full bg-iris-50 p-1 pl-4"
     >
       <span
-        className="shrink-0 text-[10px] uppercase tracking-[0.2em] text-white/40"
-        style={{ fontFamily: "var(--font-cinzel), serif" }}
+        className="shrink-0 text-xs font-bold text-iris-600"
       >
         Answer
       </span>
@@ -486,13 +456,12 @@ function TypeAnswer({
         onChange={(e) => setText(e.target.value)}
         placeholder="Type your answer..."
         disabled={disabled}
-        className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-ink placeholder:text-ink-soft/60 focus:outline-none"
       />
       <button
         type="submit"
         disabled={disabled || !text.trim()}
-        className="shrink-0 border border-amber-500/60 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-amber-400 transition hover:bg-amber-500/10 disabled:opacity-40"
-        style={{ fontFamily: "var(--font-cinzel), serif" }}
+        className="iris-btn iris-btn-primary shrink-0 px-4 py-1.5 text-sm"
       >
         Strike
       </button>
