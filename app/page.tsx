@@ -1,186 +1,115 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
-import { FaHandPeace, FaCalculator, FaCompass } from "react-icons/fa";
-import { FiSettings, FiMusic, FiStar } from "react-icons/fi";
+import { FiArrowRight } from "react-icons/fi";
+import IrisMark from "@/app/components/brand/IrisMark";
 
-function SpinArrow({ className }: { className?: string }) {
-  const [spinning, setSpinning] = useState(false);
-  return (
-    <span
-      className={className}
-      style={{
-        display: "inline-block",
-        transformOrigin: "center",
-        animation: spinning ? "spin360 0.55s ease-in-out" : "none",
-      }}
-      onMouseEnter={() => setSpinning(true)}
-      onAnimationEnd={() => setSpinning(false)}
-    >
-      ↑
-    </span>
-  );
-}
+const WORLDS = [
+  { src: "/topic-cards/topic-adventure.jpg", alt: "Forest trail from Word Adventure", subject: "ASL & reading", game: "Word Adventure", dot: "bg-emerald-500" },
+  { src: "/topic-cards/topic-boss.jpg", alt: "Glowing arena from Boss Battle", subject: "Math", game: "Boss Battle", dot: "bg-rose-500" },
+  { src: "/topic-cards/topic-maze.jpg", alt: "Night hedge maze from Maze Quest", subject: "Science", game: "Maze Quest", dot: "bg-sky-500" },
+];
+
+const STEPS = [
+  { n: "1", title: "Pick a world", text: "Math, ASL, or science. Each one is its own little game." },
+  { n: "2", title: "Choose a buddy", text: "A bear, fox, robot, or cat who talks with you the whole time." },
+  { n: "3", title: "Answer your way", text: "Say it out loud, fingerspell it in ASL, or sketch it on the whiteboard." },
+];
 
 export default function Home() {
   return (
-    <main className="relative flex min-h-screen w-full flex-col overflow-hidden bg-[#0b0907] text-white">
-
-      {/* ── Atmospheric background layers ── */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        {/* Base dark-warm gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1c1208] via-[#0e0b07] to-[#060404]" />
-        {/* Ambient glow — bottom-left warm pool */}
-        <div className="absolute bottom-0 left-1/4 h-[500px] w-[500px] -translate-x-1/2 translate-y-1/4 rounded-full bg-amber-900/25 blur-[140px]" />
-        {/* Ambient glow — mid-right cool pool */}
-        <div className="absolute right-1/4 top-1/3 h-64 w-64 rounded-full bg-stone-700/15 blur-[110px]" />
-        {/* Subtle center light behind hero text */}
-        <div className="absolute left-1/2 top-1/2 h-80 w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-800/10 blur-[100px]" />
-        {/* Noise vignette overlay */}
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            background:
-              "radial-gradient(ellipse at 50% 50%, transparent 40%, #000 100%)",
-          }}
-        />
-      </div>
-
-      {/* ── Top navigation ── */}
-      <nav className="relative z-20 flex items-center justify-between border-b border-white/8 bg-black/70 px-8 py-4 backdrop-blur-sm">
-        {/* Logo */}
-        <span
-          className="flex items-center text-xl font-black tracking-[0.2em] text-white uppercase select-none cursor-default"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
-        >
-          V<SpinArrow />
-        </span>
-
-        {/* Nav links */}
-        <div className="hidden items-center gap-10 md:flex">
-          {[
-            { label: "Home", href: "/" },
-            { label: "Math", href: "/select-topic" },
-            { label: "ASL", href: "/select-topic" },
-            { label: "Explore", href: "/select-topic" },
-          ].map(({ label, href }) => (
-            <Link
-              key={label}
-              href={href}
-              className="group flex flex-col items-center gap-1"
-              style={{ fontFamily: "var(--font-cinzel), serif" }}
-            >
-              <span className="text-sm font-semibold tracking-[0.25em] uppercase text-white/70 transition group-hover:text-amber-400">
-                {label}
-              </span>
-              <span className="flex gap-[3px]">
-                <span className="h-[3px] w-[3px] rounded-full bg-white/20 group-hover:bg-amber-400/60 transition" />
-                <span className="h-[3px] w-[3px] rounded-full bg-white/20 group-hover:bg-amber-400/60 transition" />
-                <span className="h-[3px] w-[3px] rounded-full bg-white/20 group-hover:bg-amber-400/60 transition" />
-              </span>
-            </Link>
-          ))}
-        </div>
-
-        {/* Right icons */}
-        <div className="flex items-center gap-3 text-white/50">
-          <span className="cursor-pointer text-sm transition hover:text-white"><FiSettings /></span>
-          <span className="cursor-pointer text-sm transition hover:text-white"><FiStar /></span>
+    <main className="flex min-h-screen w-full flex-col bg-paper text-ink">
+      <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+        <Link href="/" className="font-display flex items-center gap-2 text-2xl font-semibold text-ink">
+          <IrisMark size={30} className="text-ink" />
+          Iris
+        </Link>
+        <div className="flex items-center gap-6">
+          <a href="#how" className="hidden text-[15px] font-bold text-ink-soft transition hover:text-ink sm:block">
+            How it works
+          </a>
+          <Link href="/select-topic" className="hidden text-[15px] font-bold text-ink-soft transition hover:text-ink sm:block">
+            Games
+          </Link>
+          <Link href="/select-topic" className="iris-btn iris-btn-primary px-5 py-2.5 text-[15px]">
+            Play now
+          </Link>
         </div>
       </nav>
 
-      {/* ── Fixed left sidebar ── */}
-      <div className="fixed left-0 top-1/2 z-20 -translate-y-1/2 flex flex-col items-center gap-5 border-r border-white/8 bg-black/40 px-3 py-5 backdrop-blur-sm">
-        {[
-          { icon: <FaCalculator />, label: "Math" },
-          { icon: <FaHandPeace />, label: "ASL" },
-          { icon: <FaCompass />, label: "Explore" },
-        ].map(({ icon, label }) => (
-          <Link
-            key={label}
-            href="/select-topic"
-            title={label}
-            className="flex flex-col items-center gap-1 opacity-50 transition hover:opacity-100"
-          >
-            <span className="text-xl">{icon}</span>
-          </Link>
-        ))}
-      </div>
-
-      {/* ── Hero ── */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
-        <h1
-          className="logo-group text-[clamp(3rem,10vw,7rem)] font-black uppercase tracking-[0.12em] text-white cursor-default select-none"
-          style={{
-            fontFamily: "var(--font-cinzel), serif",
-            textShadow:
-              "0 0 80px rgba(200,164,60,0.25), 0 2px 4px rgba(0,0,0,0.8)",
-          }}
-        >
-          V<SpinArrow />
-        </h1>
-
-        <p
-          className="mt-5 max-w-2xl text-base font-normal uppercase tracking-[0.18em] leading-relaxed text-white/55"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
-        >
-          Conversational-based learning games for neurodivergent kids, kids with limb differences, and Deaf ASL learners.
-        </p>
-
-        {/* CTA buttons */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-5">
-          <Link
-            href="/select-topic"
-            className="border border-amber-500 px-14 py-4 text-sm font-bold uppercase tracking-[0.3em] text-amber-400 transition hover:bg-amber-500/10 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
-            style={{ fontFamily: "var(--font-cinzel), serif" }}
-          >
-            Start
-          </Link>
-          <Link
-            href="/select-topic"
-            className="border border-white/35 px-14 py-4 text-sm font-bold uppercase tracking-[0.3em] text-white/75 transition hover:bg-white/5"
-            style={{ fontFamily: "var(--font-cinzel), serif" }}
-          >
-            See Games
-          </Link>
+      <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 pb-16 pt-8 lg:grid-cols-[1.15fr_1fr] lg:pt-14">
+        <div>
+          <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-iris-500">
+            Learning games for kids who learn out loud
+          </p>
+          <h1 className="font-display mt-4 text-[clamp(2.6rem,5.2vw,4.25rem)] font-semibold leading-[1.04]">
+            Learn by talking.
+            <br />
+            Play{" "}
+            <span className="relative inline-block text-iris-500">
+              your way.
+              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden>
+                <path d="M3 8c40-6 90-7 194-3" fill="none" stroke="#ffc53d" strokeWidth="6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h1>
+          <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink-soft">
+            Iris is built for neurodivergent kids, kids with limb differences, and Deaf ASL learners.
+            A buddy asks questions out loud, listens to the answer, and cheers every step forward.
+            Nobody has to type.
+          </p>
+          <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <Link href="/select-topic" className="iris-btn iris-btn-primary px-8 py-4 text-lg">
+              Start playing <FiArrowRight />
+            </Link>
+            <a href="#how" className="text-base font-bold text-ink underline decoration-sun decoration-[3px] underline-offset-[6px] transition hover:text-iris-600">
+              See how it works
+            </a>
+          </div>
         </div>
 
-        {/* Subject tags */}
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
-          <Tag icon={<FaCalculator />} label="Math" />
-          <Tag icon={<FaHandPeace />} label="ASL" />
-          <Tag icon={<FaCompass />} label="Explore" />
+        <div className="grid h-[440px] grid-cols-2 grid-rows-2 gap-3 sm:h-[480px]">
+          {WORLDS.map((w, i) => (
+            <Link
+              key={w.game}
+              href="/select-topic"
+              className={`group relative overflow-hidden rounded-[1.5rem] bg-ink ${i === 0 ? "row-span-2" : ""}`}
+            >
+              <Image
+                src={w.src}
+                alt={w.alt}
+                fill
+                sizes="(max-width: 1024px) 50vw, 320px"
+                className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                priority={i === 0}
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 pt-12">
+                <div className="flex items-center gap-2 text-xs font-bold text-white/85">
+                  <span className={`h-2 w-2 rounded-full ${w.dot}`} />
+                  {w.subject}
+                </div>
+                <div className="font-display mt-0.5 text-xl font-semibold text-white">{w.game}</div>
+              </div>
+            </Link>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── Bottom-right badge ── */}
-      <div className="fixed bottom-6 right-6 z-20 flex items-center gap-3">
-        <Link
-          href="/select-topic"
-          className="border border-white/20 bg-black/50 px-6 py-2.5 text-xs uppercase tracking-[0.25em] text-white/55 backdrop-blur-md transition hover:text-white/90"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
-        >
-          Begin Journey
-        </Link>
-        <button
-          className="flex h-8 w-8 items-center justify-center border border-white/20 bg-black/50 text-white/50 backdrop-blur-md transition hover:text-white/90"
-          aria-label="Sound"
-        >
-          <FiMusic />
-        </button>
-      </div>
+      <section id="how" className="border-t border-ink/10 bg-white">
+        <div className="mx-auto w-full max-w-6xl px-6 py-14">
+          <h2 className="font-display text-3xl font-semibold">How a session works</h2>
+          <ol className="mt-8 grid gap-8 sm:grid-cols-3">
+            {STEPS.map((s) => (
+              <li key={s.n} className="border-t-2 border-ink pt-5">
+                <span className="font-display text-4xl font-semibold text-iris-500">{s.n}</span>
+                <h3 className="font-display mt-2 text-xl font-semibold">{s.title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
     </main>
-  );
-}
-
-function Tag({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <span
-      className="flex items-center gap-2 border border-white/12 bg-white/4 px-6 py-2 text-sm uppercase tracking-[0.2em] text-white/45 backdrop-blur-md"
-      style={{ fontFamily: "var(--font-cinzel), serif" }}
-    >
-      {icon} {label}
-    </span>
   );
 }
