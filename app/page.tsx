@@ -9,10 +9,11 @@ const WORLDS = [
   { src: "/topic-cards/topic-adventure.jpg", alt: "Forest trail from Word Adventure", subject: "ASL & reading", game: "Word Adventure", dot: "bg-emerald-500" },
   { src: "/topic-cards/topic-boss.jpg", alt: "Glowing arena from Boss Battle", subject: "Math", game: "Boss Battle", dot: "bg-rose-500" },
   { src: "/topic-cards/topic-maze.jpg", alt: "Night hedge maze from Maze Quest", subject: "Science", game: "Maze Quest", dot: "bg-sky-500" },
+  { src: "/topic-cards/topic-garden.jpg", alt: "Sunny village from Feelings Garden", subject: "Feelings", game: "Feelings Garden", dot: "bg-rose-500" },
 ];
 
 const STEPS = [
-  { n: "1", title: "Pick a world", text: "Math, ASL, or science. Each one is its own little game." },
+  { n: "1", title: "Pick a world", text: "Math, ASL, science, or feelings. Each one is its own little game." },
   { n: "2", title: "Choose a buddy", text: "A bear, fox, robot, or cat who talks with you the whole time." },
   { n: "3", title: "Answer your way", text: "Say it out loud, fingerspell it in ASL, or sketch it on the whiteboard." },
 ];
@@ -74,7 +75,7 @@ export default function Home() {
             <Link
               key={w.game}
               href="/select-topic"
-              className={`group relative overflow-hidden rounded-[1.5rem] bg-ink ${i === 0 ? "row-span-2" : ""}`}
+              className="group relative overflow-hidden rounded-[1.5rem] bg-ink"
             >
               <Image
                 src={w.src}
