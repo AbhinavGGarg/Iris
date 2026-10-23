@@ -122,7 +122,7 @@ function RobotModel() {
   return (
     <primitive
       object={scene}
-      scale={0.55}
+      scale={0.26}
       position={[0, 0, 0]}
       rotation={[0, Math.PI, 0]}
     />
