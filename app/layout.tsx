@@ -1,26 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Cinzel } from "next/font/google";
+import "@fontsource-variable/nunito";
+import "@fontsource-variable/fredoka";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const cinzel = Cinzel({
-  variable: "--font-cinzel",
-  subsets: ["latin"],
-  weight: ["400", "700", "900"],
-});
-
 export const metadata: Metadata = {
-  title: "V↑",
-  description: "Three magical worlds. Pick a topic, pick a buddy, learn together.",
+  title: "Iris",
+  description: "Voice-first learning games. Talk, sign, or draw your way through three worlds with a friendly buddy.",
 };
 
 export default function RootLayout({
@@ -31,7 +16,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
