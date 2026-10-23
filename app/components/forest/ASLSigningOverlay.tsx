@@ -176,26 +176,25 @@ export default function ASLSigningOverlay() {
   return (
     <div className="pointer-events-auto absolute bottom-32 right-5 flex flex-col items-end gap-2">
       {/* Webcam preview */}
-      <div className="relative overflow-hidden border border-amber-500/30 shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-white p-1.5 shadow-[0_24px_60px_-20px_rgba(20,16,50,0.5)]">
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
-          className="h-60 w-80 object-cover"
+          className="h-60 w-80 rounded-[1.25rem] object-cover"
           style={{ transform: "scaleX(-1)" }}
         />
         {/* Detected letter badge */}
-        <div className="absolute bottom-0 inset-x-0 bg-black/70 py-1 text-center">
+        <div className="iris-pill absolute bottom-3 left-1/2 -translate-x-1/2 justify-center">
           {detectedLetter ? (
             <>
-              <span className="text-2xl font-black text-white">{detectedLetter}</span>
-              <span className="ml-1 text-xs text-white/70">{Math.round(confidence * 100)}%</span>
+              <span className="font-display text-2xl font-semibold text-iris-600">{detectedLetter}</span>
+              <span className="ml-1 text-xs font-bold text-ink-soft">{Math.round(confidence * 100)}%</span>
             </>
           ) : (
             <span
-              className="text-xs text-white/50"
-              style={{ fontFamily: "var(--font-cinzel), serif" }}
+              className="text-xs font-bold text-ink-soft"
             >
               No hand detected
             </span>
@@ -208,20 +207,19 @@ export default function ASLSigningOverlay() {
 
       {/* Word buffer — large input-style display */}
       <div
-        className="min-h-[4.5rem] w-full max-w-md rounded-2xl border-2 border-emerald-400/40 bg-black/70 px-5 py-4 shadow-inner backdrop-blur-sm"
+        className="iris-panel min-h-[4.5rem] w-full max-w-md !rounded-3xl px-5 py-4 ring-4 ring-emerald-200"
         aria-label="Your spelled answer"
       >
         <div
-          className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400/80"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
+          className="text-xs font-bold text-emerald-700"
         >
           Your answer
         </div>
-        <div className="mt-2 min-h-[2.75rem] font-mono text-3xl font-bold leading-tight tracking-[0.08em] text-emerald-200 sm:text-4xl">
+        <div className="font-display mt-1 min-h-[2.75rem] text-3xl font-semibold leading-tight tracking-[0.12em] text-ink sm:text-4xl">
           {wordBuffer ? (
             <span className="break-all">{wordBuffer}</span>
           ) : (
-            <span className="text-white/25">—</span>
+            <span className="text-iris-200">—</span>
           )}
         </div>
       </div>
@@ -229,7 +227,7 @@ export default function ASLSigningOverlay() {
       {/* Debug toggle + panel */}
       <button
         onClick={() => setShowDebug((v) => !v)}
-        className="self-end rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/50 ring-1 ring-white/20 hover:bg-white/20"
+        className="self-end rounded-full bg-white/80 px-2.5 py-0.5 text-[10px] font-bold text-ink-soft shadow-sm hover:bg-white"
       >
         {showDebug ? "hide debug" : "debug"}
       </button>
@@ -259,24 +257,21 @@ export default function ASLSigningOverlay() {
         <button
           onClick={handleBackspace}
           disabled={!wordBuffer}
-          className="border border-white/20 bg-black/50 px-3 py-2 text-xs font-semibold text-white/75 backdrop-blur-md transition hover:bg-white/5 disabled:opacity-30"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
+          className="iris-btn iris-btn-soft px-4 py-2.5 text-sm"
         >
           Back
         </button>
         <button
           onClick={handleAppendLetter}
           disabled={!detectedLetter}
-          className="border border-amber-500/60 bg-amber-500/10 px-4 py-2 text-xs font-bold text-amber-400 backdrop-blur-md transition hover:bg-amber-500/20 disabled:opacity-30"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
+          className="iris-btn bg-emerald-500 px-5 py-2.5 text-sm text-white hover:bg-emerald-600"
         >
           Add (Space)
         </button>
         <button
           onClick={handleSubmitWord}
           disabled={!wordBuffer && !detectedLetter}
-          className="border border-amber-500 bg-amber-500/10 px-4 py-2 text-xs font-bold text-amber-400 transition hover:bg-amber-500/20 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)] disabled:opacity-30"
-          style={{ fontFamily: "var(--font-cinzel), serif" }}
+          className="iris-btn iris-btn-primary px-5 py-2.5 text-sm"
         >
           Submit
         </button>
