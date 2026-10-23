@@ -20,3 +20,5 @@ export const FOREST_AGENT_IDS: Record<CharacterSlug, string> = {
 };
 
 export const BOSS_AGENT_ID = "agent_4301m5kjjyn4fnqbv5y6f5ewepvh";
+
+export const GARDEN_AGENT_ID = "agent_0301m5knmdv0fpdvj0dcm797qks3";
