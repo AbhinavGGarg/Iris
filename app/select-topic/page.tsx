@@ -59,6 +59,19 @@ const TOPICS: TopicCard[] = [
     dot: "bg-sky-500",
     hover: "hover:border-sky-500",
   },
+  {
+    topic: "feelings",
+    title: "Feelings",
+    game: "Feelings Garden",
+    blurb:
+      "Visit your neighbors, name how they feel, and pick kind ways to help.",
+    imageSrc: "/topic-cards/topic-garden.jpg",
+    imageAlt:
+      "Sunny village with cozy houses and friendly animal neighbors around a pond",
+    subject: "Feelings",
+    dot: "bg-rose-500",
+    hover: "hover:border-rose-400",
+  },
 ];
 
 export default function SelectTopicPage() {
@@ -79,7 +92,7 @@ export default function SelectTopicPage() {
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">Where to today?</h1>
         <p className="mt-3 text-lg text-ink-soft">Pick a world. You can switch any time.</p>
 
-        <div className="mt-10 grid w-full gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid w-full gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {TOPICS.map((t) => (
             <button
               key={t.topic}

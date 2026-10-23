@@ -12,6 +12,7 @@ const TOPIC_LABEL: Record<Topic, string> = {
   science: "Explore",
   math: "Math",
   spelling_asl: "ASL",
+  feelings: "Feelings",
 };
 
 const CHARACTER_BLURB: Record<CharacterSlug, string> = {
