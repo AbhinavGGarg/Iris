@@ -12,7 +12,7 @@ import type { Direction } from "@/app/lib/maze";
 
 const Trophy3D = dynamic(() => import("./Trophy3D"), { ssr: false });
 
-const cinzel = { fontFamily: "var(--font-cinzel), serif" } as const;
+const displayFont = { fontFamily: "var(--font-display)" } as const;
 
 export default function HUD() {
   const status = useGameStore((s) => s.status);
@@ -158,33 +158,32 @@ export default function HUD() {
                   : "Listening";
 
   const variantTone: Record<typeof bubbleVariant, string> = {
-    intro: "border-indigo-500/30",
-    question: "border-amber-500/30",
-    encouragement: "border-amber-500/40",
-    celebration: "border-amber-400/50",
-    victory: "border-amber-400/60",
+    intro: "ring-iris-200",
+    question: "ring-sky-200",
+    encouragement: "ring-amber-200",
+    celebration: "ring-emerald-200",
+    victory: "ring-emerald-300",
   };
 
   return (
     <>
       <div className="pointer-events-none absolute inset-0 flex flex-col">
         {/* Header */}
-        <header className="pointer-events-auto flex items-center justify-between gap-3 border-b border-white/8 bg-black/70 px-6 py-3 backdrop-blur-sm">
+        <header className="pointer-events-auto flex items-center justify-between gap-3 px-5 py-4">
           <button
             onClick={() => {
               if (connected) conv.endSession();
               router.push("/");
             }}
-            className="border border-white/20 px-4 py-1.5 text-[10px] uppercase tracking-[0.25em] text-white/55 transition hover:border-white/40 hover:text-white/90"
-            style={cinzel}
+            className="iris-btn iris-btn-soft px-4 py-2 text-sm"
           >
-            ← Hub
+            ← Home
           </button>
 
           <div className="flex items-center gap-3">
             <span
-              className="text-sm font-bold uppercase tracking-[0.2em] text-white"
-              style={cinzel}
+              className="iris-pill text-base"
+              style={displayFont}
             >
               {persona.emoji} Maze Quest
             </span>
@@ -219,22 +218,21 @@ export default function HUD() {
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-full max-w-xl -translate-x-1/2 -translate-y-1/2 px-6">
             <div
               key={lastAgentMessage}
-              className={`center-card pointer-events-auto border bg-black/70 p-6 shadow-2xl backdrop-blur-md ${variantTone[bubbleVariant]}`}
+              className={`center-card iris-panel pointer-events-auto p-7 ring-4 ${variantTone[bubbleVariant]}`}
             >
               <div
-                className="text-[9px] font-semibold uppercase tracking-[0.3em] text-amber-400/70"
-                style={cinzel}
+                className="inline-flex items-center rounded-full bg-iris-100 px-3 py-1 text-xs font-bold text-iris-700"
               >
                 {persona.name}
               </div>
               <div
-                className="mt-2 text-2xl font-semibold leading-snug text-white drop-shadow"
-                style={cinzel}
+                className="mt-3 text-2xl font-semibold leading-snug text-ink"
+                style={displayFont}
               >
                 {lastAgentMessage}
               </div>
               {bubbleVariant === "encouragement" && (
-                <div className="mt-3 text-sm text-white/60">
+                <div className="mt-3 text-sm font-semibold text-ink-soft">
                   💛 Take your time — I&apos;m right here with you.
                 </div>
               )}
@@ -242,12 +240,11 @@ export default function HUD() {
                 <div className="mt-5 flex justify-center">
                   <button
                     onClick={() => conv.setMuted(!muted)}
-                    className={`border px-7 py-3 text-[11px] font-bold uppercase tracking-[0.3em] transition ${
+                    className={`iris-btn px-7 py-3 text-base ${
                       muted
-                        ? "border-amber-500 text-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
-                        : "border-rose-500/50 text-rose-400/70 hover:border-rose-400 hover:text-rose-300"
+                        ? "iris-btn-primary"
+                        : "border-2 border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
                     }`}
-                    style={cinzel}
                   >
                     <span className="inline-flex items-center gap-2">
                       {muted ? <FaMicrophone /> : <FaMicrophoneSlash />}
@@ -263,24 +260,20 @@ export default function HUD() {
         {/* Idle splash */}
         {status === "idle" && (
           <div className="pointer-events-auto absolute left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 px-6 text-center">
-            <div className="center-card border border-amber-500/30 bg-black/80 p-8 shadow-2xl backdrop-blur-md">
-              <div className="text-4xl">{persona.emoji}</div>
+            <div className="center-card iris-panel p-8">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-sky-100 text-4xl">{persona.emoji}</div>
               <div
-                className="mt-4 text-2xl font-black uppercase tracking-[0.15em] text-white"
-                style={{
-                  ...cinzel,
-                  textShadow: "0 0 60px rgba(200,164,60,0.2), 0 2px 4px rgba(0,0,0,0.8)",
-                }}
+                className="mt-4 text-3xl font-semibold text-ink"
+                style={displayFont}
               >
                 Maze Quest
               </div>
               <p
-                className="mt-2 text-[11px] uppercase tracking-[0.2em] text-white/40"
-                style={cinzel}
+                className="mt-1 text-sm font-bold text-sky-600"
               >
                 Science questions unlock your path
               </p>
-              <p className="mt-4 text-sm leading-relaxed text-white/70" style={cinzel}>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
                 Answer a science question → earn a step → pick an arrow to guide your buddy toward the glowing portal.
               </p>
               <button
@@ -289,37 +282,33 @@ export default function HUD() {
                   start();
                 }}
                 disabled={starting || uploading}
-                className="mt-6 border border-amber-500 px-10 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-amber-400 transition hover:bg-amber-500/10 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] disabled:opacity-50"
-                style={cinzel}
+                className="iris-btn iris-btn-primary mt-6 px-10 py-3.5 text-lg"
               >
                 {starting ? "Connecting…" : "Start Adventure"}
               </button>
 
-              <div className="mt-5 border-t border-white/10 pt-5">
+              <div className="mt-6 border-t border-iris-100 pt-5">
                 <p
-                  className="text-[10px] uppercase tracking-[0.2em] text-white/35"
-                  style={cinzel}
+                  className="text-sm font-semibold text-ink-soft"
                 >
                   Or upload a video for custom questions
                 </p>
                 {videoQuestions ? (
                   <div className="mt-3">
-                    <p className="text-xs text-emerald-400">
+                    <p className="text-sm font-bold text-emerald-600">
                       {videoQuestions.length} questions ready
                     </p>
                     <div className="mt-3 flex items-center justify-center gap-3">
                       <button
                         onClick={start}
                         disabled={starting}
-                        className="border border-emerald-500 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-emerald-400 transition hover:bg-emerald-500/10 disabled:opacity-50"
-                        style={cinzel}
+                        className="iris-btn bg-emerald-500 px-7 py-3 text-base text-white shadow-[0_10px_24px_-10px_rgba(16,185,129,0.8)] hover:bg-emerald-600"
                       >
                         {starting ? "Connecting…" : "Start with Video"}
                       </button>
                       <button
                         onClick={() => setVideoQuestions(null)}
-                        className="border border-white/20 px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-white/40 transition hover:border-white/40 hover:text-white/70"
-                        style={cinzel}
+                        className="iris-btn iris-btn-soft px-5 py-3 text-base"
                       >
                         Clear
                       </button>
@@ -327,8 +316,7 @@ export default function HUD() {
                   </div>
                 ) : (
                   <label
-                    className={`mt-3 inline-block cursor-pointer border border-indigo-500/50 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-400 transition hover:bg-indigo-500/10 ${uploading ? "pointer-events-none opacity-50" : ""}`}
-                    style={cinzel}
+                    className={`iris-btn iris-btn-soft mt-3 cursor-pointer px-7 py-3 text-base ${uploading ? "pointer-events-none opacity-50" : ""}`}
                   >
                     {uploading ? "Generating Questions…" : "Upload Video"}
                     <input
@@ -346,8 +334,7 @@ export default function HUD() {
                 )}
                 {uploadError && (
                   <div
-                    className="mt-2 border border-rose-400/40 bg-rose-500/10 p-2 text-xs text-rose-200"
-                    style={cinzel}
+                    className="mt-3 rounded-2xl bg-rose-50 p-3 text-sm font-semibold text-rose-600"
                   >
                     {uploadError}
                   </div>
@@ -356,8 +343,7 @@ export default function HUD() {
 
               {error && (
                 <div
-                  className="mt-3 border border-rose-400/40 bg-rose-500/10 p-2 text-xs text-rose-200"
-                  style={cinzel}
+                  className="mt-3 rounded-2xl bg-rose-50 p-3 text-sm font-semibold text-rose-600"
                 >
                   {error}
                 </div>
@@ -377,15 +363,13 @@ export default function HUD() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={stop}
-                  className="border border-rose-500/40 px-5 py-2 text-[10px] uppercase tracking-[0.2em] text-rose-400/70 transition hover:border-rose-400 hover:text-rose-300"
-                  style={cinzel}
+                  className="iris-btn border-2 border-rose-200 bg-white px-5 py-2 text-sm text-rose-600 hover:bg-rose-50"
                 >
                   End
                 </button>
                 <button
                   onClick={() => reset()}
-                  className="border border-white/20 px-5 py-2 text-[10px] uppercase tracking-[0.2em] text-white/55 transition hover:border-white/40 hover:text-white/90"
-                  style={cinzel}
+                  className="iris-btn iris-btn-soft px-5 py-2 text-sm"
                 >
                   Restart
                 </button>
@@ -407,8 +391,7 @@ export default function HUD() {
 
         {error && status !== "idle" && status !== "won" && (
           <div
-            className="pointer-events-auto absolute left-1/2 top-20 max-w-md -translate-x-1/2 border border-rose-400/40 bg-rose-500/10 p-2 text-center text-xs text-rose-200 backdrop-blur-md"
-            style={cinzel}
+            className="pointer-events-auto absolute left-1/2 top-20 max-w-md -translate-x-1/2 rounded-2xl bg-rose-50 px-4 py-2.5 text-center text-sm font-semibold text-rose-600 shadow-lg"
           >
             {error}
           </div>
@@ -418,32 +401,25 @@ export default function HUD() {
       {/* Victory screen */}
       {status === "won" && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="pointer-events-auto center-card border border-amber-500/40 bg-black/80 px-12 py-10 text-center shadow-2xl backdrop-blur-md">
+          <div className="pointer-events-auto center-card iris-panel px-12 py-10 text-center">
             <div className="mx-auto flex h-64 w-64 items-center justify-center">
               <Trophy3D />
             </div>
             <div
-              className="mt-4 text-4xl font-black uppercase tracking-[0.15em] text-amber-300"
-              style={{
-                ...cinzel,
-                textShadow: "0 0 60px rgba(200,164,60,0.3)",
-              }}
+              className="mt-4 text-4xl font-semibold text-iris-600"
+              style={displayFont}
             >
-              You Did It!
+              You did it!
             </div>
-            <p
-              className="mt-3 text-[11px] uppercase tracking-[0.2em] text-white/40"
-              style={cinzel}
-            >
+            <p className="mt-2 text-base font-bold text-emerald-600">
               Your buddy made it home
             </p>
-            <p className="mt-3 text-sm text-white/80">Wonderful work, friend.</p>
+            <p className="mt-2 text-[15px] text-ink-soft">Wonderful work, friend.</p>
             <button
               onClick={() => reset()}
-              className="mt-6 border border-amber-500 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.3em] text-amber-400 transition hover:bg-amber-500/10"
-              style={cinzel}
+              className="iris-btn iris-btn-primary mt-6 px-10 py-3.5 text-lg"
             >
-              Play Again
+              Play again
             </button>
           </div>
         </div>
@@ -463,12 +439,9 @@ function Tag({
 }) {
   return (
     <div
-      className={`border px-3 py-1 text-[10px] uppercase tracking-[0.15em] backdrop-blur-md ${
-        highlight
-          ? "border-amber-500/50 bg-black/40 text-amber-400"
-          : "border-white/15 bg-black/40 text-white/50"
+      className={`iris-pill ${
+        highlight ? "!bg-iris-500 !text-white" : ""
       } ${pulse ? "listening-glow" : ""}`}
-      style={{ fontFamily: "var(--font-cinzel), serif" }}
     >
       {children}
     </div>
@@ -485,17 +458,16 @@ function DPad({
   onMove: (dir: Direction) => void;
 }) {
   const btnBase =
-    "flex h-14 w-14 items-center justify-center border text-2xl font-black shadow-xl transition active:scale-90";
+    "flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-black transition active:scale-90";
   const enabled =
-    "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:border-amber-400 hover:bg-amber-500/20";
-  const disabled = "border-white/8 bg-white/3 text-white/20 cursor-not-allowed";
+    "bg-iris-500 text-white shadow-[0_8px_18px_-8px_rgba(101,81,212,0.9)] hover:bg-iris-600";
+  const disabled = "bg-iris-50 text-iris-200 cursor-not-allowed";
   const cls = (wall: boolean) => `${btnBase} ${canMove && !wall ? enabled : disabled}`;
 
   return (
-    <div className="flex flex-col items-center gap-2 border border-white/10 bg-black/50 p-3 shadow-2xl backdrop-blur-md">
+    <div className="iris-panel flex flex-col items-center gap-2 !rounded-3xl p-3">
       <div
-        className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/40"
-        style={{ fontFamily: "var(--font-cinzel), serif" }}
+        className="text-xs font-bold text-ink-soft"
       >
         {canMove ? "Pick a direction" : "Answer to unlock"}
       </div>
@@ -556,11 +528,10 @@ function TypeAnswer({
         onSubmit(t);
         setText("");
       }}
-      className="flex items-center gap-2 border border-white/15 bg-black/40 p-1 pl-3 backdrop-blur-md"
+      className="iris-panel flex items-center gap-2 !rounded-full p-1.5 pl-4"
     >
       <span
-        className="text-[10px] uppercase tracking-[0.2em] text-white/40"
-        style={{ fontFamily: "var(--font-cinzel), serif" }}
+        className="text-xs font-bold text-iris-600"
       >
         Type
       </span>
@@ -570,13 +541,12 @@ function TypeAnswer({
         onChange={(e) => setText(e.target.value)}
         placeholder="Type your answer if it's loud…"
         disabled={disabled}
-        className="w-56 bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
+        className="w-56 bg-transparent text-sm font-semibold text-ink placeholder:text-ink-soft/60 focus:outline-none"
       />
       <button
         type="submit"
         disabled={disabled || !text.trim()}
-        className="border border-amber-500/60 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-amber-400 transition hover:bg-amber-500/10 disabled:opacity-40"
-        style={{ fontFamily: "var(--font-cinzel), serif" }}
+        className="iris-btn iris-btn-primary px-4 py-1.5 text-sm"
       >
         Send
       </button>
