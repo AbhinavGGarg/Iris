@@ -13,11 +13,12 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 
 ## Routes
 - `/`: home
-- `/select-topic`: pick a world (Math, ASL, Explore)
+- `/select-topic`: pick a world (Math, ASL, Explore, Feelings)
 - `/select-character`: pick a buddy
 - `/play/boss`: Math boss battle
 - `/play/adventure`: reading + ASL forest trail
 - `/play/maze`: science maze
+- `/play/garden`: feelings garden (name the feeling, pick a kind way to help)
 
 ## Shared contracts
 - **`hubStore`** (`app/lib/hubStore.ts`) holds `selectedTopic` and `selectedCharacter`. Every game reads from it.
