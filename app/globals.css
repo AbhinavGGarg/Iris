@@ -1,30 +1,104 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Nunito Variable", ui-rounded, system-ui, sans-serif;
+  --font-display: "Fredoka Variable", "Nunito Variable", ui-rounded, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-iris-50: #f3f0fe;
+  --color-iris-100: #e6e0fd;
+  --color-iris-200: #ccc1fa;
+  --color-iris-300: #a996f3;
+  --color-iris-400: #8469ea;
+  --color-iris-500: #5a3fd9;
+  --color-iris-600: #4a31bf;
+  --color-iris-700: #3c279b;
+  --color-iris-800: #2f1f78;
+  --color-iris-900: #221656;
+
+  --color-ink: #1e1a3a;
+  --color-ink-soft: #5b5770;
+  --color-paper: #fbf7f0;
+  --color-sun: #ffc53d;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #fbf7f0;
+  --foreground: #1e1a3a;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
+/* ── Iris UI kit ─────────────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.iris-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(30, 26, 58, 0.1);
+  border-radius: 1.5rem;
+}
+
+.iris-panel {
+  background: #ffffff;
+  color: var(--color-ink);
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 0 rgba(30, 26, 58, 0.08), 0 18px 40px -18px rgba(10, 8, 30, 0.55);
+}
+
+.iris-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: var(--color-ink);
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.9rem;
+  box-shadow: 0 2px 0 rgba(30, 26, 58, 0.12);
+}
+
+.iris-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+.iris-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.iris-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+.iris-btn:focus-visible { outline: 3px solid var(--color-sun); outline-offset: 3px; }
+.iris-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.iris-btn-primary {
+  background: var(--color-iris-500);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--color-iris-800);
+}
+.iris-btn-primary:hover:not(:disabled) { background: var(--color-iris-600); }
+
+.iris-btn-soft {
+  background: #ffffff;
+  color: var(--color-ink);
+  border: 1.5px solid rgba(30, 26, 58, 0.14);
+  box-shadow: 0 2px 0 rgba(30, 26, 58, 0.1);
+}
+.iris-btn-soft:hover:not(:disabled) { background: var(--color-iris-50); }
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-btn { transition: none; }
+}
 
 @keyframes spin360 {
   from { transform: rotate(0deg); }
