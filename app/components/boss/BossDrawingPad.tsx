@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useBossStore } from "@/app/lib/bossStore";
 
-const cinzel = { fontFamily: "var(--font-cinzel), serif" } as const;
+const displayFont = { fontFamily: "var(--font-sans)" } as const;
 
 const CANVAS_W = 1024;
 const CANVAS_H = 768;
@@ -180,22 +180,22 @@ export default function BossDrawingPad() {
 
   return (
     <div
-      className="pointer-events-auto absolute right-0 top-0 z-30 flex h-full w-[480px] flex-col gap-3 border-l border-rose-500/20 bg-black/70 p-4 shadow-2xl backdrop-blur-md"
-      style={cinzel}
+      className="iris-panel pointer-events-auto absolute bottom-3 right-3 top-3 z-30 flex w-[480px] flex-col gap-3 p-5"
+      style={displayFont}
     >
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-rose-400/80">
+          <div className="font-display text-xl font-semibold text-ink">
             Whiteboard
           </div>
-          <div className="text-sm uppercase tracking-[0.2em] text-white">
+          <div className="mt-0.5 text-sm font-semibold capitalize text-ink-soft">
             {question.difficulty} · {question.category}
           </div>
         </div>
         <button
           onClick={close}
           disabled={submitting}
-          className="shrink-0 border border-rose-500/40 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-rose-400/70 transition hover:border-rose-400 hover:text-rose-300 disabled:opacity-40"
+          className="iris-btn iris-btn-soft shrink-0 px-4 py-2 text-sm"
         >
           Close
         </button>
@@ -203,7 +203,7 @@ export default function BossDrawingPad() {
 
       {!showResultView && (
         <>
-          <div className="border border-white/15 bg-white shadow-xl">
+          <div className="overflow-hidden rounded-2xl bg-white ring-2 ring-iris-100">
             <canvas
               ref={canvasRef}
               width={CANVAS_W}
@@ -227,14 +227,14 @@ export default function BossDrawingPad() {
               <button
                 onClick={undo}
                 disabled={submitting || !hasInk}
-                className="shrink-0 border border-white/20 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-white/55 transition hover:border-white/40 hover:text-white/90 disabled:opacity-40"
+                className="iris-btn iris-btn-soft shrink-0 px-4 py-2 text-sm"
               >
                 Undo
               </button>
               <button
                 onClick={reset}
                 disabled={submitting}
-                className="shrink-0 border border-white/20 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-white/55 transition hover:border-white/40 hover:text-white/90 disabled:opacity-40"
+                className="iris-btn iris-btn-soft shrink-0 px-4 py-2 text-sm"
               >
                 Clear
               </button>
@@ -242,14 +242,14 @@ export default function BossDrawingPad() {
             <button
               onClick={submit}
               disabled={submitting || !hasInk}
-              className="shrink-0 border border-amber-500/60 px-6 py-2 text-[10px] uppercase tracking-[0.2em] text-amber-400 transition hover:bg-amber-500/10 disabled:opacity-40"
+              className="iris-btn iris-btn-primary shrink-0 px-6 py-2 text-sm"
             >
               {submitting ? "Grading…" : "Submit"}
             </button>
           </div>
 
           {error && (
-            <div className="border border-rose-400/40 bg-rose-500/10 p-2 text-[10px] uppercase tracking-[0.2em] text-rose-200">
+            <div className="rounded-2xl bg-rose-50 p-3 text-sm font-semibold text-rose-600">
               {error}
             </div>
           )}
@@ -258,12 +258,12 @@ export default function BossDrawingPad() {
 
       {showResultView && (
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
-          <div className="border border-white/15 bg-white shadow-xl">
+          <div className="overflow-hidden rounded-2xl bg-white ring-2 ring-iris-100">
             {annotatedImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={annotatedImage} alt="Annotated work" className="w-full" />
             ) : (
-              <div className="flex aspect-[4/3] items-center justify-center text-[10px] uppercase tracking-[0.2em] text-stone-500">
+              <div className="flex aspect-[4/3] items-center justify-center text-sm font-semibold text-ink-soft">
                 No annotated image returned
               </div>
             )}
@@ -271,10 +271,10 @@ export default function BossDrawingPad() {
 
           <button
             onClick={continueAfterVerdict}
-            className={`shrink-0 border px-6 py-2 text-[10px] uppercase tracking-[0.2em] transition ${
+            className={`iris-btn shrink-0 px-6 py-3 text-base ${
               isCorrect
-                ? "border-amber-500/60 text-amber-400 hover:bg-amber-500/10"
-                : "border-rose-500/40 text-rose-400/70 hover:border-rose-400 hover:text-rose-300"
+                ? "iris-btn-primary"
+                : "bg-rose-50 text-rose-600 hover:bg-rose-100"
             }`}
           >
             {isCorrect ? "Next Problem" : "Try Again"}
