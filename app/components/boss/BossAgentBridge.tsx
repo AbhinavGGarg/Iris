@@ -1,38 +1,26 @@
 "use client";
 
-import { useConversationClientTool } from "@elevenlabs/react";
+import { useConversation, useConversationClientTool } from "@elevenlabs/react";
+import { useEffect, useRef } from "react";
 import { useBossStore } from "@/app/lib/bossStore";
 
+/**
+ * The game decides every hit. This bridge forwards each new narration line to the
+ * voice buddy, and keeps a read-only state tool in case the agent asks.
+ */
 export default function BossAgentBridge() {
-  useConversationClientTool("dealDamageToBoss", () => {
-    return useBossStore.getState().dealDamageToBoss();
-  });
+  const conv = useConversation();
+  const narration = useBossStore((s) => s.narration);
+  const lastSent = useRef(0);
 
-  useConversationClientTool("dealDamageToPlayer", () => {
-    return useBossStore.getState().dealDamageToPlayer();
-  });
+  useConversationClientTool("getBattleState", () => useBossStore.getState().getBattleState());
 
-  useConversationClientTool("getBattleState", () => {
-    return useBossStore.getState().getBattleState();
-  });
-
-  useConversationClientTool("triggerVictory", () => {
-    const s = useBossStore.getState();
-    if (s.bossHP > 0) {
-      return `REJECTED. Boss still has ${s.bossHP} HP. You must call dealDamageToBoss again. Do NOT declare victory yet.`;
-    }
-    s.triggerVictory();
-    return "Victory triggered.";
-  });
-
-  useConversationClientTool("triggerDefeat", () => {
-    const s = useBossStore.getState();
-    if (s.playerHP > 0) {
-      return `REJECTED. Player still has ${s.playerHP} HP. The fight continues. Do NOT declare defeat yet.`;
-    }
-    s.triggerDefeat();
-    return "Defeat triggered.";
-  });
+  useEffect(() => {
+    if (!narration || narration.key === lastSent.current) return;
+    lastSent.current = narration.key;
+    if (conv.status !== "connected") return;
+    conv.sendUserMessage(`[GAME EVENT] ${narration.text}`);
+  }, [narration, conv]);
 
   return null;
 }

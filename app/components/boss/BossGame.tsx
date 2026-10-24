@@ -10,10 +10,10 @@ import BossHUD from "./BossHUD";
 
 export default function BossGame() {
   const resetBoss = useBossStore((s) => s.reset);
-  const appendTranscript = useBossStore((s) => s.appendTranscript);
   const setError = useBossStore((s) => s.setError);
   const setStatus = useBossStore((s) => s.setStatus);
   const setAgentMessage = useBossStore((s) => s.setAgentMessage);
+  const submitAnswer = useBossStore((s) => s.submitAnswer);
 
   useEffect(() => { resetBoss(); }, [resetBoss]);
 
@@ -29,14 +29,15 @@ export default function BossGame() {
         if (reason === "error") {
           setError(details?.message ?? "Connection lost");
         }
-        if (reason !== "user") setStatus("idle");
+        // Keep the fight going on the number pad instead of throwing the child back to the start.
+        if (reason !== "user" && useBossStore.getState().status === "battling") {
+          useBossStore.setState({ voiceMode: false });
+          setError("The voice buddy disconnected. Keep going with the number pad!");
+        }
       }}
       onMessage={({ message, source }) => {
-        const role = source === "user" ? "user" : "ai";
-        appendTranscript({ role, text: message, ts: Date.now() });
-        if (role === "ai") {
-          setAgentMessage(message);
-        }
+        if (source === "user") submitAnswer(message, "voice");
+        else setAgentMessage(message);
       }}
     >
       <div
