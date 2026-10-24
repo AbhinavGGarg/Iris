@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { getLevel, parseSpokenNumber, type BossQuestion, type LevelId } from "./bossLevels";
+import { DEFAULT_LEVEL, getLevel, isLevelId, parseSpokenNumber, type BossQuestion, type LevelId } from "./bossLevels";
 
 export type BattleStatus = "idle" | "battling" | "victory" | "defeat";
 export type AnswerSource = "voice" | "pad" | "whiteboard";
@@ -122,7 +122,7 @@ const battleInitial = {
 let eventId = 0;
 
 export const useBossStore = create<State>((set, get) => ({
-  level: 1,
+  level: DEFAULT_LEVEL,
   voiceMode: false,
   calmMode: false,
   soundOn: true,
@@ -134,7 +134,10 @@ export const useBossStore = create<State>((set, get) => ({
     return qs[questionIndex % qs.length]!;
   },
 
-  setLevel: (l) => set({ level: l }),
+  setLevel: (l) => {
+    set({ level: l });
+    useBossProgress.getState().setLastLevel(l);
+  },
   setCalmMode: (v) => set({ calmMode: v }),
   setSoundOn: (v) => set({ soundOn: v }),
 
@@ -152,7 +155,7 @@ export const useBossStore = create<State>((set, get) => ({
           nudge: true,
           narration: {
             key: ++eventId,
-            text: `The child said something without a number. Kindly ask them to say a number, then read this question verbatim: "${question.spoken}"`,
+            text: `The player said something without a number. Kindly ask them to say a number, then read this question verbatim: "${question.spoken}"`,
           },
         });
       }
@@ -175,10 +178,10 @@ export const useBossStore = create<State>((set, get) => ({
 
       let line: string;
       if (won) {
-        line = `The child answered ${given}. CORRECT, and that was the final blow! The ${level.bossName} is defeated. Say a big, happy victory cheer in one or two short sentences.`;
+        line = `The player answered ${given}. CORRECT, and that was the final blow! The ${level.bossName} is defeated. Say a big, happy victory cheer in one or two short sentences.`;
       } else {
         line =
-          `The child answered ${given}. CORRECT.` +
+          `The player answered ${given}. CORRECT.` +
           (combo ? ` That is a ${streak} in a row COMBO, a super hit!` : "") +
           (phaseUp ? ` The ${level.bossName} is powering up into a new form!` : "") +
           ` Say one short, excited attack line (max 8 words), then read this next question verbatim: "${next.spoken}"`;
@@ -213,8 +216,8 @@ export const useBossStore = create<State>((set, get) => ({
     const playerHP = s.playerHP - dealt;
     const lost = playerHP <= 0;
     const line = lost
-      ? `The child answered ${given}, but the answer was ${question.answer}. The ${level.bossName} wins this time. Gently say the answer was ${question.answer}, then say something warm and encouraging about trying again (max 2 short sentences).`
-      : `The child answered ${given}. Not quite: the answer was ${question.answer}. The ${level.bossName} strikes back. Say one short line that gently tells them the answer (max 12 words), then read this next question verbatim: "${next.spoken}"`;
+      ? `The player answered ${given}, but the answer was ${question.answer}. The ${level.bossName} wins this time. Gently say the answer was ${question.answer}, then say something warm and encouraging about trying again (max 2 short sentences).`
+      : `The player answered ${given}. Not quite: the answer was ${question.answer}. The ${level.bossName} strikes back. Say one short line that gently tells them the answer (max 12 words), then read this next question verbatim: "${next.spoken}"`;
 
     set({
       playerHP,
@@ -236,7 +239,7 @@ export const useBossStore = create<State>((set, get) => ({
     const s = get();
     if (s.status !== "battling" || s.hintShown) return;
     const q = s.currentQuestion();
-    set({ hintShown: true, narration: { key: ++eventId, text: `The child asked for a hint. Say this verbatim: "${q.hint}"` } });
+    set({ hintShown: true, narration: { key: ++eventId, text: `The player asked for a hint. Say this verbatim: "${q.hint}"` } });
   },
 
   getBattleState: () => {
@@ -273,17 +276,33 @@ export const useBossStore = create<State>((set, get) => ({
 
 type Progress = {
   stars: Partial<Record<LevelId, number>>;
+  /** The level picked last time, so the start screen opens on the child's grade. */
+  lastLevel: LevelId;
   recordStars: (level: LevelId, stars: number) => void;
+  setLastLevel: (level: LevelId) => void;
 };
 
-/** Best stars per level, remembered in this browser. */
+/** Best stars per level and the last level picked, remembered in this browser. */
 export const useBossProgress = create<Progress>()(
   persist(
     (set) => ({
       stars: {},
+      lastLevel: DEFAULT_LEVEL,
       recordStars: (level, stars) =>
         set((p) => ({ stars: { ...p.stars, [level]: Math.max(p.stars[level] ?? 0, stars) } })),
+      setLastLevel: (level) => set({ lastLevel: level }),
     }),
-    { name: "iris-boss-progress", storage: createJSONStorage(() => localStorage) },
+    {
+      name: "iris-boss-progress-v2",
+      storage: createJSONStorage(() => localStorage),
+      merge: (saved, current) => {
+        const p = (saved ?? {}) as Partial<Progress>;
+        return {
+          ...current,
+          stars: p.stars ?? {},
+          lastLevel: isLevelId(p.lastLevel) ? p.lastLevel : DEFAULT_LEVEL,
+        };
+      },
+    },
   ),
 );

@@ -24,7 +24,7 @@ import {
   useBossStore,
   type DamageEvent,
 } from "@/app/lib/bossStore";
-import { getLevel, LEVELS, type LevelId } from "@/app/lib/bossLevels";
+import { getGrade, getLevel, GRADES, hasNegatives, nextLevelId } from "@/app/lib/bossLevels";
 import { useHubStore } from "@/app/lib/hubStore";
 import { CHARACTERS } from "@/app/lib/characters";
 import { buildBossFirstMessage, buildBossSystemPrompt } from "@/app/lib/bossAgentPersona";
@@ -45,6 +45,8 @@ export default function BossHUD() {
 
   const s = useBossStore();
   const level = getLevel(s.level);
+  const grade = getGrade(level.grade);
+  const next = nextLevelId(s.level);
   const question = s.currentQuestion();
   const stars = useBossProgress((p) => p.stars);
 
@@ -153,7 +155,7 @@ export default function BossHUD() {
   const nextLevel = () => {
     endVoice();
     s.reset();
-    s.setLevel(Math.min(4, s.level + 1) as LevelId);
+    if (next) s.setLevel(next);
   };
 
   const readAloud = (text: string) => {
@@ -167,7 +169,7 @@ export default function BossHUD() {
   const phase = phaseFor(s.bossHP);
   const bossPct = (s.bossHP / MAX_HP) * 100;
   const playerPct = (s.playerHP / MAX_HP) * 100;
-  const isWord = question.prompt.length > 14;
+  const isWord = !!question.text;
   const miss = s.lastResult && !s.lastResult.correct ? s.lastResult : null;
   const earned = starsFor(s.wrongAnswers);
 
@@ -193,7 +195,11 @@ export default function BossHUD() {
           </button>
           <div className="flex items-center gap-2">
             <span className="iris-pill font-display text-base">Boss Battle</span>
-            {s.status !== "idle" && <span className="iris-pill">{level.skill}</span>}
+            {s.status !== "idle" && (
+              <span className="iris-pill">
+                {grade.label} · {level.skill}
+              </span>
+            )}
             {s.status === "battling" && s.streak > 0 && (
               <span className={`iris-pill ${s.streak >= COMBO_AT ? "!bg-amber-400 !text-amber-950" : ""}`}>
                 <FaBolt /> {s.streak} in a row
@@ -255,8 +261,12 @@ export default function BossHUD() {
                 </div>
               )}
 
-              <p className={`font-display mt-3 font-semibold leading-tight text-ink ${isWord ? "text-2xl" : "text-5xl"}`}>
-                {isWord ? question.prompt : `${question.prompt} = ?`}
+              <p
+                className={`font-display mt-3 whitespace-pre-line font-semibold leading-tight text-ink ${
+                  !isWord ? "text-5xl" : question.prompt.length < 40 ? "text-3xl" : "text-2xl"
+                }`}
+              >
+                {question.prompt}
               </p>
 
               {s.hintShown && (
@@ -301,7 +311,13 @@ export default function BossHUD() {
             </div>
 
             {/* Keyed by question so the typed digits clear for each new question. */}
-            <NumberPad key={`pad-${s.questionIndex}`} onStrike={strike} keyboard={!s.whiteboardOpen} sound={s.soundOn} />
+            <NumberPad
+              key={`pad-${s.questionIndex}`}
+              onStrike={strike}
+              keyboard={!s.whiteboardOpen}
+              sound={s.soundOn}
+              negative={hasNegatives(level)}
+            />
           </div>
         )}
 
@@ -317,24 +333,47 @@ export default function BossHUD() {
           <div className="center-card iris-panel pointer-events-auto mx-4 w-full max-w-2xl p-7">
             <div className="text-center">
               <div className="font-display text-3xl font-semibold text-ink">Boss Battle</div>
-              <p className="mt-1 text-[15px] text-ink-soft">Answer math questions to power up your attacks. Pick a level:</p>
+              <p className="mt-1 text-[15px] text-ink-soft">Answer math questions to power up your attacks. Pick your grade, then a level:</p>
             </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {LEVELS.map((l) => {
+            <div className="mt-5 flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Grade">
+              {GRADES.map((g) => {
+                const on = g.id === level.grade;
+                const done = g.levels.filter((l) => (stars[l.id] ?? 0) > 0).length;
+                return (
+                  <button
+                    key={g.id}
+                    role="radio"
+                    aria-checked={on}
+                    aria-label={g.label}
+                    onClick={() => s.setLevel(g.levels[0]!.id)}
+                    className={`iris-btn font-display relative h-12 w-12 rounded-2xl text-lg ${
+                      on ? "iris-btn-primary" : "bg-iris-50 text-ink hover:bg-iris-100"
+                    }`}
+                  >
+                    {g.short}
+                    {done === 3 && <FaStar className="absolute -right-1 -top-1 text-sm text-amber-400" />}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="font-display mt-3 text-center text-lg font-semibold text-ink">{grade.label}</p>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {grade.levels.map((l) => {
                 const selected = l.id === s.level;
                 const best = stars[l.id] ?? 0;
                 return (
                   <button
                     key={l.id}
                     onClick={() => s.setLevel(l.id)}
-                    className={`iris-card flex items-center gap-3 p-4 text-left transition hover:-translate-y-0.5 ${selected ? "!border-iris-500 ring-4 ring-iris-100" : ""}`}
+                    className={`iris-card flex items-center gap-3 p-4 text-left transition hover:-translate-y-0.5 sm:flex-col sm:items-start ${selected ? "!border-iris-500 ring-4 ring-iris-100" : ""}`}
                   >
                     <span
-                      className="font-display flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl font-semibold text-white"
+                      className="font-display flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg font-semibold text-white"
                       style={{ background: l.palette[0] }}
                     >
-                      {l.id}
+                      {l.n}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="font-display block text-lg font-semibold leading-tight text-ink">{l.skill}</span>
@@ -358,7 +397,7 @@ export default function BossHUD() {
 
             <div className="mt-5 flex flex-col items-center gap-3">
               <button onClick={startVoice} disabled={starting} className="iris-btn iris-btn-primary px-10 py-3.5 text-lg">
-                {starting ? "Connecting…" : `Start level ${s.level} with voice`}
+                {starting ? "Connecting…" : "Start with voice"}
               </button>
               <button onClick={startQuiet} className="text-sm font-bold text-ink-soft underline decoration-sun decoration-2 underline-offset-4 hover:text-ink">
                 Play without voice
@@ -376,13 +415,13 @@ export default function BossHUD() {
           <p className="mt-1 text-base font-bold text-emerald-600">You beat the {level.bossName}!</p>
           <Stats correct={s.correctAnswers} wrong={s.wrongAnswers} streak={s.bestStreak} />
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {s.level < 4 && (
+            {next && (
               <button onClick={nextLevel} className="iris-btn iris-btn-primary px-7 py-3 text-base">
-                Next level →
+                {getLevel(next).grade === level.grade ? "Next level →" : `On to ${getGrade(getLevel(next).grade).label} →`}
               </button>
             )}
-            <button onClick={backToLevels} className={`iris-btn px-7 py-3 text-base ${s.level < 4 ? "iris-btn-soft" : "iris-btn-primary"}`}>
-              {s.level < 4 ? "Choose level" : "Play again"}
+            <button onClick={backToLevels} className={`iris-btn px-7 py-3 text-base ${next ? "iris-btn-soft" : "iris-btn-primary"}`}>
+              {next ? "Choose level" : "Play again"}
             </button>
           </div>
         </EndCard>
@@ -458,40 +497,67 @@ function FloatNumber({ event, onDone }: { event: DamageEvent; onDone: (id: numbe
   );
 }
 
-function NumberPad({ onStrike, keyboard, sound }: { onStrike: (n: number) => void; keyboard: boolean; sound: boolean }) {
+function NumberPad({
+  onStrike,
+  keyboard,
+  sound,
+  negative,
+}: {
+  onStrike: (n: number) => void;
+  keyboard: boolean;
+  sound: boolean;
+  negative: boolean;
+}) {
   const [entry, setEntry] = useState("");
+  const [neg, setNeg] = useState(false);
   const onDigit = useCallback(
     (d: string) => {
       if (sound) sfx.tap();
-      setEntry((v) => (v.length < 3 ? v + d : v));
+      setEntry((v) => (v.length < 4 ? v + d : v));
     },
     [sound],
   );
+  const toggleSign = useCallback(() => {
+    if (!negative) return;
+    if (sound) sfx.tap();
+    setNeg((v) => !v);
+  }, [negative, sound]);
   const onBack = () => setEntry((v) => v.slice(0, -1));
   const submit = useCallback(() => {
     if (!entry) return;
-    onStrike(Number(entry));
+    onStrike(neg ? -Number(entry) : Number(entry));
     setEntry("");
-  }, [entry, onStrike]);
+    setNeg(false);
+  }, [entry, neg, onStrike]);
 
-  // Keyboard: digits, Backspace, Enter.
+  // Keyboard: digits, minus, Backspace, Enter.
   useEffect(() => {
     if (!keyboard) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (/^\d$/.test(e.key)) onDigit(e.key);
+      else if (e.key === "-") toggleSign();
       else if (e.key === "Backspace") setEntry((v) => v.slice(0, -1));
       else if (e.key === "Enter") submit();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [keyboard, onDigit, submit]);
+  }, [keyboard, onDigit, toggleSign, submit]);
 
   const key = "iris-btn h-14 rounded-2xl bg-iris-50 text-2xl text-ink hover:bg-iris-100";
+  const strikeBtn = (
+    <button
+      onClick={submit}
+      disabled={!entry}
+      className={`iris-btn iris-btn-primary h-14 rounded-2xl text-lg ${negative ? "col-span-3" : ""}`}
+    >
+      <FaBolt /> Strike
+    </button>
+  );
   return (
     <div className="iris-panel pointer-events-auto w-full p-4 md:w-72">
       <div className="font-display mb-3 flex h-14 items-center justify-center rounded-2xl bg-ink/5 text-4xl font-semibold text-ink">
-        {entry || <span className="text-ink/25">?</span>}
+        {entry ? `${neg ? "−" : ""}${entry}` : <span className="text-ink/25">{neg ? "−?" : "?"}</span>}
       </div>
       <div className="grid grid-cols-3 gap-2">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
@@ -499,15 +565,35 @@ function NumberPad({ onStrike, keyboard, sound }: { onStrike: (n: number) => voi
             {d}
           </button>
         ))}
-        <button onClick={onBack} className={key} aria-label="Delete">
-          <FaBackspace />
-        </button>
-        <button onClick={() => onDigit("0")} className={key}>
-          0
-        </button>
-        <button onClick={submit} disabled={!entry} className="iris-btn iris-btn-primary h-14 rounded-2xl text-lg">
-          <FaBolt /> Strike
-        </button>
+        {negative ? (
+          <>
+            <button
+              onClick={toggleSign}
+              aria-label="Make negative"
+              aria-pressed={neg}
+              className={`${key} ${neg ? "!bg-iris-500 !text-white" : ""}`}
+            >
+              −
+            </button>
+            <button onClick={() => onDigit("0")} className={key}>
+              0
+            </button>
+            <button onClick={onBack} className={key} aria-label="Delete">
+              <FaBackspace />
+            </button>
+            {strikeBtn}
+          </>
+        ) : (
+          <>
+            <button onClick={onBack} className={key} aria-label="Delete">
+              <FaBackspace />
+            </button>
+            <button onClick={() => onDigit("0")} className={key}>
+              0
+            </button>
+            {strikeBtn}
+          </>
+        )}
       </div>
     </div>
   );

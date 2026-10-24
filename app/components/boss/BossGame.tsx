@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { ConversationProvider } from "@elevenlabs/react";
-import { useBossStore } from "@/app/lib/bossStore";
+import { useBossProgress, useBossStore } from "@/app/lib/bossStore";
 import BossAgentBridge from "./BossAgentBridge";
 import BossArena3D from "./BossArena3D";
 import BossDrawingPad from "./BossDrawingPad";
@@ -15,7 +15,10 @@ export default function BossGame() {
   const setAgentMessage = useBossStore((s) => s.setAgentMessage);
   const submitAnswer = useBossStore((s) => s.submitAnswer);
 
-  useEffect(() => { resetBoss(); }, [resetBoss]);
+  useEffect(() => {
+    resetBoss();
+    useBossStore.setState({ level: useBossProgress.getState().lastLevel });
+  }, [resetBoss]);
 
   return (
     <ConversationProvider

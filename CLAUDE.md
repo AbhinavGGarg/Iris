@@ -15,7 +15,7 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - `/`: home
 - `/select-topic`: pick a world (Math, ASL, Explore, Feelings)
 - `/select-character`: pick a buddy
-- `/play/boss`: Math boss battle (4 levels, number pad or voice, combos, stars)
+- `/play/boss`: Math boss battle (grades K–8, 3 levels each, number pad or voice, combos, stars)
 - `/play/adventure`: reading + ASL forest trail
 - `/play/maze`: science maze
 - `/play/garden`: feelings garden (name the feeling, pick a kind way to help)
@@ -37,6 +37,7 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - **R3F scene shape:** a `<Canvas>` parent, then lighting and `<Environment>`, then `<Suspense>` around models, with postprocessing last.
 - Keep game flows deterministic, with the same input giving the same result every time.
 - **Boss Battle: the game judges, the agent narrates.** `bossStore.submitAnswer` checks every answer (voice, number pad, or whiteboard) against `bossLevels.ts`, then sends the agent a `[GAME EVENT]` line to read out. The agent never decides hits, so voice and screen can't drift apart.
+- **Boss questions** live in `app/lib/bossLevels.ts` (`GRADES` → 3 levels → 12 questions). Every answer must be a whole number (negatives are allowed and turn on the pad's minus key), and the last step must state the answer.
 
 ## Run
 ```bash
