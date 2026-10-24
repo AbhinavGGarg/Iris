@@ -3,14 +3,36 @@ import { NextRequest, NextResponse } from "next/server";
 const GEMINI_URL =
   process.env.HACKDAVIS_GEMINI_URL ?? "https://generativelanguage.googleapis.com";
 const API_KEY = process.env.HACKDAVIS_GEMINI_API_KEY ?? "";
-const MODEL_NAME =
-  process.env.HACKDAVIS_GEMINI_MODEL ?? "gemini-3-pro-image-preview";
+// gemini-2.5-flash is on Gemini's free tier and reads handwriting well. Set
+// HACKDAVIS_GEMINI_MODEL to an image model (e.g. gemini-3-pro-image-preview, paid)
+// to also get a marked-up copy of the drawing back.
+const MODEL_NAME = process.env.HACKDAVIS_GEMINI_MODEL ?? "gemini-2.5-flash";
+const ANNOTATES = MODEL_NAME.includes("image");
 const TIMEOUT_MS =
-  parseInt(process.env.HACKDAVIS_GEMINI_TIMEOUT ?? "500", 10) * 1000;
+  parseInt(process.env.HACKDAVIS_GEMINI_TIMEOUT ?? "60", 10) * 1000;
 
-const SYSTEM_INSTRUCTION =
-  "You are a math teacher grading a student's handwritten work. " +
-  "Annotate the image visually with grading marks. Then output a final verdict.";
+const SYSTEM_INSTRUCTION = ANNOTATES
+  ? "You are a math teacher grading a student's handwritten work. " +
+    "Annotate the image visually with grading marks. Then output a final verdict."
+  : "You are a kind math teacher checking a young student's handwritten work. " +
+    "Read the drawing carefully and output a final verdict.";
+
+function buildTextPrompt(problem: string, answer: string): string {
+  return `
+A young child solved this problem on a whiteboard: ${problem}
+The correct final answer is: ${answer}
+
+Look at the drawing and find the child's final answer (usually the last or circled number).
+The work is "correct" only if that final answer equals ${answer}.
+It is "incorrect" if the answer is different, missing, or unreadable.
+
+Reply with EXACTLY two lines and nothing else:
+VERDICT=correct
+NOTE=<short, kind feedback for a child, max 10 words>
+
+(Use VERDICT=incorrect when the answer is wrong. Never reveal the correct answer in the NOTE.)
+`.trim();
+}
 
 function buildPrompt(
   problem: string,
@@ -130,7 +152,7 @@ export async function POST(req: NextRequest) {
       {
         role: "user",
         parts: [
-          { text: buildPrompt(problem, solutionSteps ?? [], answer) },
+          { text: ANNOTATES ? buildPrompt(problem, solutionSteps ?? [], answer) : buildTextPrompt(problem, answer) },
           {
             inline_data: {
               mime_type: "image/jpeg",
