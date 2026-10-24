@@ -3,9 +3,12 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { useBossStore } from "@/app/lib/bossStore";
+import { phaseFor, useBossStore } from "@/app/lib/bossStore";
+import { getLevel } from "@/app/lib/bossLevels";
 
-const MAX_HP = 100;
+/** The spell takes this long to fly from the hero to the boss. */
+const SPELL_TRAVEL = 0.45;
+const WINDUP = 0.6;
 
 export default function Boss3D() {
   const root = useRef<THREE.Group>(null!);
@@ -19,27 +22,44 @@ export default function Boss3D() {
 
   const bossHP = useBossStore((s) => s.bossHP);
   const bossHitKey = useBossStore((s) => s.bossHitKey);
+  const playerHitKey = useBossStore((s) => s.playerHitKey);
   const status = useBossStore((s) => s.status);
+  const level = useBossStore((s) => s.level);
+  const calmMode = useBossStore((s) => s.calmMode);
 
-  const hitClock = useRef(-1);
+  const hitClock = useRef<number | null>(null);
+  const windClock = useRef<number | null>(null);
   const deathClock = useRef(-1);
+  const phaseScale = useRef(1);
 
   useEffect(() => {
     if (bossHitKey === 0) return;
-    hitClock.current = 0;
+    hitClock.current = -SPELL_TRAVEL;
   }, [bossHitKey]);
 
   useEffect(() => {
-    if (status === "victory") deathClock.current = 0;
+    if (playerHitKey === 0) return;
+    windClock.current = 0;
+  }, [playerHitKey]);
+
+  useEffect(() => {
+    if (status === "victory") deathClock.current = -SPELL_TRAVEL;
+    if (status === "idle" || status === "battling") {
+      deathClock.current = -1;
+      if (root.current) {
+        root.current.scale.setScalar(1);
+        root.current.rotation.z = 0;
+      }
+    }
   }, [status]);
 
-  // Phase-based colors as HP drops.
-  const phaseColor = useMemo(() => {
-    const pct = bossHP / MAX_HP;
-    if (pct > 0.6) return new THREE.Color("#ff3838");
-    if (pct > 0.25) return new THREE.Color("#ff8a00");
-    return new THREE.Color("#ffe44d");
-  }, [bossHP]);
+  const phase = phaseFor(bossHP);
+
+  // Each level has its own colors, and the boss changes form as its HP drops.
+  const phaseColor = useMemo(
+    () => new THREE.Color(getLevel(level).palette[phase - 1]),
+    [level, phase],
+  );
 
   // Build orbiting spike data once.
   const orbiterData = useMemo(
@@ -74,12 +94,15 @@ export default function Boss3D() {
       root.current.position.y = 2.2 + float;
     }
 
+    const speed = phase === 1 ? 1 : phase === 2 ? 1.6 : 2.3;
+    phaseScale.current += ((phase === 1 ? 1 : phase === 2 ? 1.08 : 1.16) - phaseScale.current) * Math.min(1, delta * 2);
+
     if (body.current) {
-      body.current.rotation.y += delta * 0.35;
+      body.current.rotation.y += delta * 0.35 * speed;
     }
 
     if (orbiters.current) {
-      orbiters.current.rotation.y -= delta * 0.7;
+      orbiters.current.rotation.y -= delta * 0.7 * speed;
       orbiters.current.children.forEach((child, i) => {
         const d = orbiterData[i];
         if (!d) return;
@@ -96,12 +119,27 @@ export default function Boss3D() {
       rightWing.current.rotation.z = -(0.4 + flap);
     }
 
-    // Hit flash + shake.
-    if (hitClock.current >= 0) {
+    // Wind-up before the boss attacks: it swells and glows, then lunges.
+    let windScale = 1;
+    if (windClock.current !== null) {
+      windClock.current += delta;
+      const w = windClock.current;
+      if (w < WINDUP) windScale = 1 + 0.2 * (w / WINDUP);
+      else if (w < WINDUP + 0.25) windScale = 1.2 - 0.2 * ((w - WINDUP) / 0.25);
+      if (body.current) body.current.position.z = w >= WINDUP && w < WINDUP + 0.25 ? Math.sin(((w - WINDUP) / 0.25) * Math.PI) * 0.6 : 0;
+      if (coreMat.current && w < WINDUP) coreMat.current.emissiveIntensity = 1.6 + (w / WINDUP) * 3;
+      if (w > WINDUP + 0.3) windClock.current = null;
+    }
+    if (deathClock.current < 0 && root.current) root.current.scale.setScalar(phaseScale.current * windScale);
+
+    // Hit flash + shake, timed to the moment the spell arrives.
+    if (hitClock.current !== null) {
       hitClock.current += delta;
+    }
+    if (hitClock.current !== null && hitClock.current >= 0) {
       const h = hitClock.current;
       if (h < 0.6 && body.current) {
-        const shake = Math.sin(h * 80) * 0.18 * (1 - h / 0.6);
+        const shake = Math.sin(h * 80) * (calmMode ? 0.05 : 0.18) * (1 - h / 0.6);
         body.current.position.x = shake;
         body.current.position.z = shake * 0.5;
       }
@@ -115,25 +153,24 @@ export default function Boss3D() {
         );
       }
       if (hitClock.current > 0.65) {
-        hitClock.current = -1;
+        hitClock.current = null;
         if (body.current) {
           body.current.position.x = 0;
           body.current.position.z = 0;
         }
       }
-    } else if (coreMat.current) {
-      const pulse = 1.6 + Math.sin(t * 3.2) * 0.4;
+    } else if (coreMat.current && windClock.current === null) {
+      const pulse = 1.6 + Math.sin(t * 3.2 * speed) * 0.4;
       coreMat.current.emissiveIntensity = pulse;
       coreMat.current.color.copy(phaseColor);
     }
 
-    // Death animation.
-    if (deathClock.current >= 0 && root.current) {
+    // Death animation (starts when the final spell lands, then stays gone).
+    if (status === "victory" && root.current) {
       deathClock.current += delta;
-      const d = deathClock.current;
-      root.current.rotation.z = Math.sin(d * 12) * 0.15;
-      root.current.scale.setScalar(Math.max(0, 1 - d * 0.6));
-      if (d > 1.6) deathClock.current = -1;
+      const d = Math.max(0, deathClock.current);
+      root.current.rotation.z = Math.sin(d * 12) * 0.15 * Math.max(0, 1 - d / 1.6);
+      root.current.scale.setScalar(Math.max(0, phaseScale.current * (1 - d * 0.6)));
     }
   });
 
