@@ -37,7 +37,7 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - **R3F scene shape:** a `<Canvas>` parent, then lighting and `<Environment>`, then `<Suspense>` around models, with postprocessing last.
 - Keep game flows deterministic, with the same input giving the same result every time.
 - **Boss Battle: the game judges, the agent narrates.** `bossStore.submitAnswer` checks every answer (voice, number pad, or whiteboard) against `bossLevels.ts`, then sends the agent a `[GAME EVENT]` line to read out. The agent never decides hits, so voice and screen can't drift apart.
-- **Boss questions** live in `app/lib/bossLevels.ts` (`GRADES` → 3 levels → 12 questions). Every answer must be a whole number (negatives are allowed and turn on the pad's minus key), and the last step must state the answer.
+- **Boss questions** are generated in `app/lib/bossLevels.ts`: each level has a `make(rng)` template, and every fight builds a fresh 16-question deck from a seed (same seed, same deck). Answers must be whole numbers (set `negatives: true` on a level to show the pad's minus key), and the last step must state the answer.
 
 ## Run
 ```bash

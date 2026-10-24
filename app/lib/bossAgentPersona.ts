@@ -1,5 +1,5 @@
 import { CHARACTERS, type CharacterSlug } from "./characters";
-import { getGrade, getLevel, type LevelId } from "./bossLevels";
+import { getGrade, getLevel, type BossQuestion, type LevelId } from "./bossLevels";
 
 export function buildBossSystemPrompt(slug: CharacterSlug | null, levelId: LevelId): string {
   const hero = CHARACTERS[slug ?? "bear"].label;
@@ -29,8 +29,8 @@ Messages starting with [GAME EVENT] come from the game, not the player. Do exact
 - Never mention tools, functions, or game events out loud.`;
 }
 
-export function buildBossFirstMessage(slug: CharacterSlug | null, levelId: LevelId): string {
+export function buildBossFirstMessage(slug: CharacterSlug | null, levelId: LevelId, first: BossQuestion): string {
   const hero = CHARACTERS[slug ?? "bear"].label;
   const level = getLevel(levelId);
-  return `${hero} steps into the arena! The ${level.bossName} appears! Answer right to power up your attacks. ${level.questions[0]!.spoken}`;
+  return `${hero} steps into the arena! The ${level.bossName} appears! Answer right to power up your attacks. ${first.spoken}`;
 }

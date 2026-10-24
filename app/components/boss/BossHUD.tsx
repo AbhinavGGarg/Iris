@@ -125,7 +125,7 @@ export default function BossHUD() {
         overrides: {
           agent: {
             prompt: { prompt: buildBossSystemPrompt(slug, lvl) },
-            firstMessage: buildBossFirstMessage(slug, lvl),
+            firstMessage: buildBossFirstMessage(slug, lvl, useBossStore.getState().currentQuestion()),
           },
         },
       });

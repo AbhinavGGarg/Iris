@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { DEFAULT_LEVEL, getLevel, isLevelId, parseSpokenNumber, type BossQuestion, type LevelId } from "./bossLevels";
+import { buildDeck, DEFAULT_LEVEL, getLevel, isLevelId, newSeed, parseSpokenNumber, type BossQuestion, type LevelId } from "./bossLevels";
 
 export type BattleStatus = "idle" | "battling" | "victory" | "defeat";
 export type AnswerSource = "voice" | "pad" | "whiteboard";
@@ -42,6 +42,9 @@ type State = {
   soundOn: boolean;
 
   status: BattleStatus;
+  /** This fight's questions, made fresh from `seed` when the battle starts. */
+  deck: BossQuestion[];
+  seed: number;
   playerHP: number;
   bossHP: number;
   questionIndex: number;
@@ -74,7 +77,8 @@ type State = {
   setLevel: (l: LevelId) => void;
   setCalmMode: (v: boolean) => void;
   setSoundOn: (v: boolean) => void;
-  startBattle: (voice: boolean) => void;
+  /** Pass a seed to replay an exact set of questions (used by tests). */
+  startBattle: (voice: boolean, seed?: number) => void;
   submitAnswer: (raw: string | number, source: AnswerSource) => "hit" | "miss" | "ignored";
   useHint: () => void;
   getBattleState: () => string;
@@ -93,6 +97,8 @@ type State = {
 
 const battleInitial = {
   status: "idle" as BattleStatus,
+  deck: [] as BossQuestion[],
+  seed: 0,
   playerHP: MAX_HP,
   bossHP: MAX_HP,
   questionIndex: 0,
@@ -129,9 +135,10 @@ export const useBossStore = create<State>((set, get) => ({
   ...battleInitial,
 
   currentQuestion: () => {
-    const { level, questionIndex } = get();
-    const qs = getLevel(level).questions;
-    return qs[questionIndex % qs.length]!;
+    const { level, questionIndex, deck } = get();
+    // Before a fight starts there is no deck yet; show a stand-in so the screen has something.
+    if (deck.length === 0) return buildDeck(getLevel(level), 0, 1)[0]!;
+    return deck[questionIndex % deck.length]!;
   },
 
   setLevel: (l) => {
@@ -141,7 +148,10 @@ export const useBossStore = create<State>((set, get) => ({
   setCalmMode: (v) => set({ calmMode: v }),
   setSoundOn: (v) => set({ soundOn: v }),
 
-  startBattle: (voice) => set({ ...battleInitial, status: "battling", voiceMode: voice }),
+  startBattle: (voice, seed) => {
+    const sd = seed ?? newSeed();
+    set({ ...battleInitial, status: "battling", voiceMode: voice, seed: sd, deck: buildDeck(getLevel(get().level), sd) });
+  },
 
   submitAnswer: (raw, source) => {
     const s = get();
@@ -164,7 +174,7 @@ export const useBossStore = create<State>((set, get) => ({
 
     const level = getLevel(s.level);
     const nextIndex = s.questionIndex + 1;
-    const next = level.questions[nextIndex % level.questions.length]!;
+    const next = s.deck[nextIndex % s.deck.length]!;
     const oldPhase = phaseFor(s.bossHP);
 
     if (given === question.answer) {
