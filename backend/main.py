@@ -288,9 +288,9 @@ async def generate_forest_questions(video: UploadFile = File(...)):
     import google.generativeai as genai
     from faster_whisper import WhisperModel
 
-    api_key = os.getenv("HACKDAVIS_GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="HACKDAVIS_GEMINI_API_KEY not set")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set")
 
     suffix = Path(video.filename or "video.mp4").suffix or ".mp4"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -359,9 +359,9 @@ async def generate_maze_questions(video: UploadFile = File(...)):
     t0 = time.time()
     print(f"[maze-questions] received video: {video.filename} ({video.size} bytes)")
 
-    api_key = os.getenv("HACKDAVIS_GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="HACKDAVIS_GEMINI_API_KEY not set")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set")
 
     suffix = Path(video.filename or "video.mp4").suffix or ".mp4"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:

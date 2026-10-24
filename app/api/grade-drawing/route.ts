@@ -4,15 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 export const maxDuration = 60;
 
 const GEMINI_URL =
-  process.env.HACKDAVIS_GEMINI_URL ?? "https://generativelanguage.googleapis.com";
-const API_KEY = process.env.HACKDAVIS_GEMINI_API_KEY ?? "";
+  process.env.GEMINI_URL ?? "https://generativelanguage.googleapis.com";
+const API_KEY = process.env.GEMINI_API_KEY ?? "";
 // gemini-2.5-flash is on Gemini's free tier and reads handwriting well. Set
-// HACKDAVIS_GEMINI_MODEL to an image model (e.g. gemini-3-pro-image-preview, paid)
+// GEMINI_MODEL to an image model (e.g. gemini-3-pro-image-preview, paid)
 // to also get a marked-up copy of the drawing back.
-const MODEL_NAME = process.env.HACKDAVIS_GEMINI_MODEL ?? "gemini-2.5-flash";
+const MODEL_NAME = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 const ANNOTATES = MODEL_NAME.includes("image");
 const TIMEOUT_MS =
-  parseInt(process.env.HACKDAVIS_GEMINI_TIMEOUT ?? "60", 10) * 1000;
+  parseInt(process.env.GEMINI_TIMEOUT ?? "60", 10) * 1000;
 
 const SYSTEM_INSTRUCTION = ANNOTATES
   ? "You are a math teacher grading a student's handwritten work. " +
@@ -125,7 +125,7 @@ function extract(responseJson: GeminiResponse): ExtractResult {
 export async function POST(req: NextRequest) {
   if (!API_KEY) {
     return NextResponse.json(
-      { error: "Missing HACKDAVIS_GEMINI_API_KEY" },
+      { error: "Missing GEMINI_API_KEY" },
       { status: 500 },
     );
   }
