@@ -42,6 +42,8 @@ export default function BossDrawingPad() {
   const setVerdict = useBossStore((s) => s.setVerdict);
   const verdict = useBossStore((s) => s.verdict);
   const annotatedImage = useBossStore((s) => s.annotatedImage);
+  const verdictNote = useBossStore((s) => s.verdictNote);
+  const submitAnswer = useBossStore((s) => s.submitAnswer);
   const currentQuestion = useBossStore((s) => s.currentQuestion);
 
   const question = currentQuestion();
@@ -58,15 +60,15 @@ export default function BossDrawingPad() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    paintBackground(ctx, question.problem);
+    paintBackground(ctx, question.prompt);
     configurePen(ctx);
     undoStack.current = [];
     setHasInk(false);
-  }, [question.problem]);
+  }, [question.prompt]);
 
   useEffect(() => {
     if (open) reset();
-  }, [open, reset, question.problem]);
+  }, [open, reset, question.prompt]);
 
   const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -144,9 +146,9 @@ export default function BossDrawingPad() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imageBase64,
-          problem: question.problem,
-          solutionSteps: question.solutionSteps,
-          answer: question.answer,
+          problem: question.prompt,
+          solutionSteps: question.steps,
+          answer: String(question.answer),
         }),
       });
       if (!res.ok) {
@@ -158,9 +160,10 @@ export default function BossDrawingPad() {
         note: string;
         annotatedImageBase64: string | null;
       };
+      // Free text-only graders return no marked-up image, so show the child's own drawing.
       const annotated = data.annotatedImageBase64
         ? `data:image/jpeg;base64,${data.annotatedImageBase64}`
-        : null;
+        : dataUrl;
       setVerdict(data.verdict, data.note, annotated);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Grading failed";
@@ -170,6 +173,8 @@ export default function BossDrawingPad() {
   };
 
   const continueAfterVerdict = () => {
+    // A correct drawing lands the hit; an incorrect one just lets them try again.
+    if (verdict === "correct") submitAnswer(question.answer, "whiteboard");
     close();
   };
 
@@ -189,7 +194,7 @@ export default function BossDrawingPad() {
             Whiteboard
           </div>
           <div className="mt-0.5 text-sm font-semibold capitalize text-ink-soft">
-            {question.difficulty} · {question.category}
+            {question.prompt}
           </div>
         </div>
         <button
@@ -258,6 +263,10 @@ export default function BossDrawingPad() {
 
       {showResultView && (
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+          <div className={`rounded-2xl px-4 py-3 text-[15px] font-semibold ${isCorrect ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>
+            {isCorrect ? "Correct! Your attack is ready." : "Not quite yet. Check your work and try again."}
+            {verdictNote && <span className="mt-0.5 block text-sm font-normal">{verdictNote}</span>}
+          </div>
           <div className="overflow-hidden rounded-2xl bg-white ring-2 ring-iris-100">
             {annotatedImage ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -277,7 +286,7 @@ export default function BossDrawingPad() {
                 : "bg-rose-50 text-rose-600 hover:bg-rose-100"
             }`}
           >
-            {isCorrect ? "Next Problem" : "Try Again"}
+            {isCorrect ? "Attack!" : "Try again"}
           </button>
         </div>
       )}
