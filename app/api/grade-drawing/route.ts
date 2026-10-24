@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Reading a drawing can take a while; give it up to a minute on Vercel.
+export const maxDuration = 60;
+
 const GEMINI_URL =
   process.env.HACKDAVIS_GEMINI_URL ?? "https://generativelanguage.googleapis.com";
 const API_KEY = process.env.HACKDAVIS_GEMINI_API_KEY ?? "";

@@ -109,6 +109,17 @@ uvicorn main:app --reload --port 8000
 
 ---
 
+## Putting it online
+
+The web app deploys to [Vercel](https://vercel.com) as a normal Next.js project: import the GitHub repo, then add these environment variables in the project settings:
+
+```
+ELEVENLABS_API_KEY=sk_...
+HACKDAVIS_GEMINI_API_KEY=...
+```
+
+Every push to `main` redeploys. The Python backend doesn't run on Vercel, so ASL hand-signing and video-to-questions are hidden on the hosted site. To bring them back, deploy `backend/` somewhere that runs Python and set `NEXT_PUBLIC_BACKEND_URL` and `BACKEND_URL` to its address.
+
 ## Credits
 
 Iris grew out of a project first prototyped at HackDavis 2026.

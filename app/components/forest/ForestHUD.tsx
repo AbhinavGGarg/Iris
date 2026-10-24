@@ -7,6 +7,7 @@ import { FaMicrophone, FaMicrophoneSlash, FaKey, FaLeaf, FaHandPaper, FaArrowUp,
 import { useForestStore } from "@/app/lib/forestStore";
 import { useHubStore } from "@/app/lib/hubStore";
 import { buildForestFirstMessage, FOREST_SYSTEM_PROMPT } from "@/app/lib/forestAgentPersona";
+import { HAS_BACKEND } from "@/app/lib/backend";
 
 const CHOICE_COLORS = {
   A: "bg-iris-50 text-iris-800 ring-2 ring-iris-100",
@@ -226,6 +227,7 @@ export default function ForestHUD() {
                       {muted ? "Start Listening" : "Stop Listening"}
                     </span>
                   </button>
+                  {HAS_BACKEND && (
                   <button
                     onClick={() => {
                       setSigningMode(!signingMode);
@@ -241,6 +243,7 @@ export default function ForestHUD() {
                       {signingMode ? "Signing" : "Sign"}
                     </span>
                   </button>
+                  )}
                   <button
                     onClick={stop}
                     className="iris-btn iris-btn-soft px-5 py-2.5 text-sm"

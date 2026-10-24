@@ -9,6 +9,7 @@ import { useGameStore } from "@/app/lib/gameStore";
 import { useHubStore } from "@/app/lib/hubStore";
 import { buildFirstMessage, buildSystemPrompt, getPersona } from "@/app/lib/agentPersona";
 import type { Direction } from "@/app/lib/maze";
+import { BACKEND_URL, HAS_BACKEND } from "@/app/lib/backend";
 
 const Trophy3D = dynamic(() => import("./Trophy3D"), { ssr: false });
 
@@ -113,7 +114,7 @@ export default function HUD() {
       form.append("video", file);
       console.log("[video-upload] sending to backend...");
       const t0 = performance.now();
-      const res = await fetch("http://localhost:8000/api/generate-maze-questions", {
+      const res = await fetch(`${BACKEND_URL}/api/generate-maze-questions`, {
         method: "POST",
         body: form,
       });
@@ -287,6 +288,7 @@ export default function HUD() {
                 {starting ? "Connecting…" : "Start Adventure"}
               </button>
 
+              {HAS_BACKEND && (
               <div className="mt-6 border-t border-iris-100 pt-5">
                 <p
                   className="text-sm font-semibold text-ink-soft"
@@ -340,6 +342,7 @@ export default function HUD() {
                   </div>
                 )}
               </div>
+              )}
 
               {error && (
                 <div

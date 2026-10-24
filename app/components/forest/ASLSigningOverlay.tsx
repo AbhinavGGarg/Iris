@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useConversation } from "@elevenlabs/react";
 import { useForestStore } from "@/app/lib/forestStore";
 import { forestAnswerMatches } from "@/app/lib/forestQuestions";
+import { BACKEND_URL } from "@/app/lib/backend";
 
 export default function ASLSigningOverlay() {
   const signingMode = useForestStore((s) => s.signingMode);
@@ -103,7 +104,7 @@ export default function ASLSigningOverlay() {
       ctx.drawImage(videoRef.current, 0, 0, 320, 240);
       ctx.restore();
       const b64 = canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
-      const res = await fetch("http://localhost:8000/predict", {
+      const res = await fetch(`${BACKEND_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: b64 }),
