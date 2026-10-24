@@ -15,18 +15,27 @@ export default function BossPlayer3D() {
 
   const slug = useHubStore((s) => s.selectedCharacter) ?? "bear";
   const playerHitKey = useBossStore((s) => s.playerHitKey);
+  const bossHitKey = useBossStore((s) => s.bossHitKey);
   const status = useBossStore((s) => s.status);
 
-  const hitClock = useRef(-1);
+  // The boss winds up and its attack flies over before the hero gets knocked back.
+  const hitClock = useRef<number | null>(null);
+  const castClock = useRef<number | null>(null);
   const cheerClock = useRef(-1);
 
   useEffect(() => {
     if (playerHitKey === 0) return;
-    hitClock.current = 0;
+    hitClock.current = -1.0;
   }, [playerHitKey]);
 
   useEffect(() => {
+    if (bossHitKey === 0) return;
+    castClock.current = 0;
+  }, [bossHitKey]);
+
+  useEffect(() => {
     if (status === "victory") cheerClock.current = 0;
+    else cheerClock.current = -1;
   }, [status]);
 
   useFrame((state, delta) => {
@@ -37,9 +46,21 @@ export default function BossPlayer3D() {
     const bob = Math.sin(t * 2.6) * 0.06;
     body.current.position.y = bob;
 
+    // Cast: a quick hop toward the boss as the spell leaves.
+    if (castClock.current !== null) {
+      castClock.current += delta;
+      const c = castClock.current;
+      body.current.position.z = -Math.sin(Math.min(1, c / 0.3) * Math.PI) * 0.35;
+      body.current.position.y = bob + Math.sin(Math.min(1, c / 0.3) * Math.PI) * 0.25;
+      if (c > 0.3) {
+        castClock.current = null;
+        body.current.position.z = 0;
+      }
+    }
+
     // Hit recoil — knockback + tilt.
-    if (hitClock.current >= 0) {
-      hitClock.current += delta;
+    if (hitClock.current !== null) hitClock.current += delta;
+    if (hitClock.current !== null && hitClock.current >= 0) {
       const h = hitClock.current;
       if (h < 0.55) {
         const k = 1 - h / 0.55;
@@ -47,7 +68,7 @@ export default function BossPlayer3D() {
         body.current.rotation.z = Math.sin(h * 18) * 0.2 * k;
       }
       if (hitClock.current > 0.55) {
-        hitClock.current = -1;
+        hitClock.current = null;
         body.current.position.z = 0;
         body.current.rotation.z = 0;
       }

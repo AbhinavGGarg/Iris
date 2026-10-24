@@ -10,12 +10,13 @@ import {
 } from "@react-three/postprocessing";
 import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
-import { useBossStore } from "@/app/lib/bossStore";
+import { COMBO_AT, useBossStore } from "@/app/lib/bossStore";
 import Boss3D from "./Boss3D";
 import BossPlayer3D from "./BossPlayer3D";
 
 export default function BossArena3D() {
   const status = useBossStore((s) => s.status);
+  const calmMode = useBossStore((s) => s.calmMode);
   const visible = status === "battling" || status === "victory";
 
   return (
@@ -89,7 +90,7 @@ export default function BossArena3D() {
             mipmapBlur
           />
           <ChromaticAberration
-            offset={new THREE.Vector2(0.0008, 0.0008)}
+            offset={calmMode ? new THREE.Vector2(0, 0) : new THREE.Vector2(0.0008, 0.0008)}
             radialModulation={false}
             modulationOffset={0}
           />
@@ -191,133 +192,119 @@ function ArenaPlatform() {
   );
 }
 
-type Projectile = {
-  id: number;
-  kind: "boss" | "player";
-  born: number;
-};
+type ProjectileKind = "player" | "combo" | "boss";
+type Pending = { kind: ProjectileKind; delay: number };
+type Projectile = { id: number; kind: ProjectileKind; born: number };
+
+/** Seconds a spell takes to cross the arena (matches the boss hit timing). */
+const TRAVEL = 0.45;
+const BURST = 0.35;
+const BOSS_WINDUP = 0.55;
+const PLAYER_Z = 2.4;
+const BOSS_Z = -2.3;
 
 function ProjectileLayer() {
+  const pending = useRef<Pending[]>([]);
   const projectiles = useRef<Projectile[]>([]);
   const meshes = useRef<Map<number, THREE.Group>>(new Map());
-  const group = useRef<THREE.Group>(null!);
+  const root = useRef<THREE.Group>(null!);
+  const nextId = useRef(1);
 
   const bossHitKey = useBossStore((s) => s.bossHitKey);
   const playerHitKey = useBossStore((s) => s.playerHitKey);
 
   useEffect(() => {
     if (bossHitKey === 0) return;
-    projectiles.current.push({
-      id: Date.now() + Math.random(),
-      kind: "player",
-      born: performance.now() / 1000,
-    });
+    const combo = useBossStore.getState().streak >= COMBO_AT;
+    pending.current.push({ kind: combo ? "combo" : "player", delay: 0 });
   }, [bossHitKey]);
 
   useEffect(() => {
     if (playerHitKey === 0) return;
-    projectiles.current.push({
-      id: Date.now() + Math.random(),
-      kind: "boss",
-      born: performance.now() / 1000,
-    });
+    pending.current.push({ kind: "boss", delay: BOSS_WINDUP });
   }, [playerHitKey]);
-
-  useFrame((state) => {
-    const now = state.clock.elapsedTime;
-    projectiles.current = projectiles.current.filter((p) => {
-      const elapsed = now - p.born;
-      return elapsed < 0.7;
-    });
-  });
-
-  return (
-    <group ref={group}>
-      {/* render via React for simplicity — list re-renders on each frame is fine for ≤4 items */}
-      <ProjectileRenderer projectilesRef={projectiles} meshesRef={meshes} />
-    </group>
-  );
-}
-
-function ProjectileRenderer({
-  projectilesRef,
-  meshesRef,
-}: {
-  projectilesRef: React.MutableRefObject<Projectile[]>;
-  meshesRef: React.MutableRefObject<Map<number, THREE.Group>>;
-}) {
-  const root = useRef<THREE.Group>(null!);
 
   useFrame((state) => {
     if (!root.current) return;
     const now = state.clock.elapsedTime;
 
-    // Sync children to projectile list.
-    const liveIds = new Set(projectilesRef.current.map((p) => p.id));
+    // Use the canvas clock for everything so spells always line up with the hits.
+    for (const p of pending.current) {
+      projectiles.current.push({ id: nextId.current++, kind: p.kind, born: now + p.delay });
+    }
+    pending.current = [];
+    projectiles.current = projectiles.current.filter((p) => now - p.born < TRAVEL + BURST);
 
-    // Remove dead.
-    for (const [id, g] of meshesRef.current) {
-      if (!liveIds.has(id)) {
+    const live = new Set(projectiles.current.map((p) => p.id));
+    for (const [id, g] of meshes.current) {
+      if (!live.has(id)) {
         root.current.remove(g);
-        meshesRef.current.delete(id);
+        meshes.current.delete(id);
       }
     }
 
-    // Add new + animate.
-    for (const p of projectilesRef.current) {
-      let g = meshesRef.current.get(p.id);
+    for (const p of projectiles.current) {
+      let g = meshes.current.get(p.id);
       if (!g) {
         g = makeProjectileMesh(p.kind);
-        meshesRef.current.set(p.id, g);
+        meshes.current.set(p.id, g);
         root.current.add(g);
       }
-      const t = Math.min(1, (now - p.born) / 0.55);
-      // player → boss travels from z=2.6 to z=-2.5, y rises in arc
-      const fromZ = p.kind === "player" ? 2.4 : -2.3;
-      const toZ = p.kind === "player" ? -2.3 : 2.4;
-      const z = fromZ + (toZ - fromZ) * t;
-      const arc = Math.sin(t * Math.PI) * 1.4;
-      g.position.set(0, 1.3 + arc, z);
-      g.rotation.x += 0.3;
-      g.rotation.y += 0.4;
-      const fade = t < 0.85 ? 1 : Math.max(0, 1 - (t - 0.85) / 0.15);
-      g.scale.setScalar(0.6 + Math.sin(t * Math.PI) * 0.4);
-      g.children.forEach((child) => {
-        const m = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
-        if (m && "opacity" in m) {
-          m.transparent = true;
-          m.opacity = fade;
-        }
-      });
+      const elapsed = now - p.born;
+      const orb = g.children[0] as THREE.Mesh;
+      const glow = g.children[1] as THREE.Mesh;
+      const burst = g.children[2] as THREE.Mesh;
+      g.visible = elapsed >= 0;
+      if (elapsed < 0) continue;
+
+      const fromZ = p.kind === "boss" ? BOSS_Z : PLAYER_Z;
+      const toZ = p.kind === "boss" ? PLAYER_Z : BOSS_Z;
+      const big = p.kind === "combo" ? 1.6 : 1;
+
+      if (elapsed < TRAVEL) {
+        const t = elapsed / TRAVEL;
+        const z = fromZ + (toZ - fromZ) * t;
+        const arc = Math.sin(t * Math.PI) * 1.2;
+        orb.visible = glow.visible = true;
+        burst.visible = false;
+        orb.position.set(0, (p.kind === "boss" ? 2.2 : 1.1) + (p.kind === "boss" ? -1.1 * t : 1.1 * t) + arc, z);
+        glow.position.copy(orb.position);
+        orb.rotation.x += 0.35;
+        orb.rotation.y += 0.45;
+        orb.scale.setScalar(big * (0.8 + Math.sin(t * Math.PI) * 0.5));
+        glow.scale.setScalar(big * (1 + Math.sin(t * Math.PI) * 0.6));
+      } else {
+        const b = (elapsed - TRAVEL) / BURST;
+        orb.visible = glow.visible = false;
+        burst.visible = true;
+        burst.position.set(0, p.kind === "boss" ? 1.1 : 2.2, toZ);
+        burst.scale.setScalar(big * (0.4 + b * 2.4));
+        (burst.material as THREE.MeshBasicMaterial).opacity = 0.75 * (1 - b);
+      }
     }
   });
 
   return <group ref={root} />;
 }
 
-function makeProjectileMesh(kind: "boss" | "player"): THREE.Group {
+function makeProjectileMesh(kind: ProjectileKind): THREE.Group {
   const g = new THREE.Group();
-  const color = kind === "player" ? "#7dd3fc" : "#ff4444";
-  const emissive = kind === "player" ? "#bae6fd" : "#ffaa55";
-  const sphere = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.28, 1),
-    new THREE.MeshStandardMaterial({
-      color,
-      emissive,
-      emissiveIntensity: 3,
-      roughness: 0.2,
-    }),
+  const color = kind === "boss" ? "#ff4444" : kind === "combo" ? "#ffd23f" : "#7dd3fc";
+  const glowColor = kind === "boss" ? "#ffaa55" : kind === "combo" ? "#fff1a8" : "#bae6fd";
+  const orb = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(0.3, 1),
+    new THREE.MeshStandardMaterial({ color, emissive: glowColor, emissiveIntensity: 3.5, roughness: 0.2 }),
   );
-  g.add(sphere);
-  const trail = new THREE.Mesh(
-    new THREE.SphereGeometry(0.45, 16, 16),
-    new THREE.MeshBasicMaterial({
-      color: emissive,
-      transparent: true,
-      opacity: 0.35,
-    }),
+  const glow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 16, 16),
+    new THREE.MeshBasicMaterial({ color: glowColor, transparent: true, opacity: 0.35 }),
   );
-  g.add(trail);
+  const burst = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 20, 20),
+    new THREE.MeshBasicMaterial({ color: glowColor, transparent: true, opacity: 0.7 }),
+  );
+  burst.visible = false;
+  g.add(orb, glow, burst);
   return g;
 }
 
@@ -329,7 +316,10 @@ function CameraShake() {
 
   const playerHitKey = useBossStore((s) => s.playerHitKey);
   const bossHitKey = useBossStore((s) => s.bossHitKey);
+  const calmMode = useBossStore((s) => s.calmMode);
   const shake = useRef(0);
+  const queued = useRef<{ at: number; amount: number }[]>([]);
+  const clock = useRef(0);
   const target = useRef(new THREE.Vector3(0, 1.6, 0));
 
   useEffect(() => {
@@ -340,32 +330,39 @@ function CameraShake() {
 
   useEffect(() => {
     if (playerHitKey === 0) return;
-    shake.current = Math.max(shake.current, 0.55);
+    queued.current.push({ at: clock.current + BOSS_WINDUP + TRAVEL, amount: 0.55 });
   }, [playerHitKey]);
 
   useEffect(() => {
     if (bossHitKey === 0) return;
-    shake.current = Math.max(shake.current, 0.3);
+    queued.current.push({ at: clock.current + TRAVEL, amount: 0.3 });
   }, [bossHitKey]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
+    const cam = state.camera;
+    clock.current += delta;
+    queued.current = queued.current.filter((q) => {
+      if (q.at > clock.current) return true;
+      if (!calmMode) shake.current = Math.max(shake.current, q.amount);
+      return false;
+    });
+
     // Slow orbit drift for life.
-    const drift = Math.sin(performance.now() / 4000) * 0.4;
-    const dx = drift;
-    const dy = Math.sin(performance.now() / 5200) * 0.15;
+    const dx = Math.sin(clock.current / 4) * 0.4;
+    const dy = Math.sin(clock.current / 5.2) * 0.15;
 
     if (shake.current > 0) {
       const k = shake.current;
-      camera.position.x = baseX.current + dx + (Math.random() - 0.5) * 0.25 * k;
-      camera.position.y = baseY.current + dy + (Math.random() - 0.5) * 0.25 * k;
-      camera.position.z = baseZ.current + (Math.random() - 0.5) * 0.15 * k;
+      cam.position.x = baseX.current + dx + (Math.random() - 0.5) * 0.25 * k;
+      cam.position.y = baseY.current + dy + (Math.random() - 0.5) * 0.25 * k;
+      cam.position.z = baseZ.current + (Math.random() - 0.5) * 0.15 * k;
       shake.current = Math.max(0, shake.current - delta * 1.6);
     } else {
-      camera.position.x += (baseX.current + dx - camera.position.x) * 0.04;
-      camera.position.y += (baseY.current + dy - camera.position.y) * 0.04;
-      camera.position.z += (baseZ.current - camera.position.z) * 0.04;
+      cam.position.x += (baseX.current + dx - cam.position.x) * 0.04;
+      cam.position.y += (baseY.current + dy - cam.position.y) * 0.04;
+      cam.position.z += (baseZ.current - cam.position.z) * 0.04;
     }
-    camera.lookAt(target.current);
+    cam.lookAt(target.current);
   });
 
   return null;
