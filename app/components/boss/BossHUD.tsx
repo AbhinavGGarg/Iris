@@ -16,7 +16,7 @@ import {
   FaVolumeUp,
 } from "react-icons/fa";
 import {
-  COMBO_AT,
+  CHARGE_MAX,
   MAX_HP,
   phaseFor,
   starsFor,
@@ -29,10 +29,14 @@ import { useHubStore } from "@/app/lib/hubStore";
 import { CHARACTERS } from "@/app/lib/characters";
 import { buildBossFirstMessage, buildBossSystemPrompt } from "@/app/lib/bossAgentPersona";
 import { sfx } from "@/app/lib/sfx";
+import { FX, LANDS, specialFor, type SpecialMove } from "@/app/lib/bossFx";
 
 /** Boss attacks wind up first, so the hit on the player lands a moment later. */
-const PLAYER_HIT_DELAY_MS = 1000;
-const BOSS_HIT_DELAY_MS = 450;
+const PLAYER_HIT_DELAY_MS = LANDS.boss * 1000;
+const BOSS_HIT_DELAY_MS = LANDS.spell * 1000;
+const SPECIAL_HIT_DELAY_MS = LANDS.special * 1000;
+/** The win screen waits for the boss to burst, which takes longer after a special. */
+const victoryPopMs = (finisher: "spell" | "special" | null) => (finisher === "special" ? 2450 : 1800);
 
 export default function BossHUD() {
   const router = useRouter();
@@ -42,6 +46,7 @@ export default function BossHUD() {
 
   const slug = useHubStore((s) => s.selectedCharacter) ?? "bear";
   const heroName = CHARACTERS[slug].label;
+  const move = specialFor(slug);
 
   const s = useBossStore();
   const level = getLevel(s.level);
@@ -70,9 +75,33 @@ export default function BossHUD() {
     if (s.bossHitKey === 0) return;
     if (useBossStore.getState().soundOn) {
       sfx.spell();
-      sfx.hit(useBossStore.getState().streak >= COMBO_AT);
+      sfx.hit(false);
     }
   }, [s.bossHitKey]);
+
+  useEffect(() => {
+    if (s.specialKey === 0) return;
+    if (useBossStore.getState().soundOn) sfx.special(FX.specialCharge, FX.specialBeam);
+  }, [s.specialKey]);
+
+  // A chime the moment the special becomes ready.
+  useEffect(() => {
+    if (s.charge === CHARGE_MAX && useBossStore.getState().soundOn) sfx.ready();
+  }, [s.charge]);
+
+  // Space bar fires the special.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const st = useBossStore.getState();
+      if (st.status !== "battling" || st.whiteboardOpen) return;
+      e.preventDefault();
+      st.fireSpecial();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     if (s.playerHitKey === 0) return;
@@ -100,7 +129,7 @@ export default function BossHUD() {
 
   useEffect(() => {
     if (!useBossStore.getState().soundOn) return;
-    if (s.status === "victory") setTimeout(() => sfx.victory(), 700);
+    if (s.status === "victory") setTimeout(() => sfx.victory(), victoryPopMs(useBossStore.getState().finisher));
     if (s.status === "defeat") setTimeout(() => sfx.defeat(), PLAYER_HIT_DELAY_MS + 200);
   }, [s.status]);
 
@@ -182,6 +211,8 @@ export default function BossHUD() {
         />
       )}
 
+      {s.specialKey > 0 && <SpecialCinematic key={s.specialKey} move={move} calm={s.calmMode} />}
+
       <div className="pointer-events-none absolute inset-0 flex flex-col">
         <header className="pointer-events-auto flex items-center justify-between gap-3 px-5 py-4">
           <button
@@ -201,7 +232,7 @@ export default function BossHUD() {
               </span>
             )}
             {s.status === "battling" && s.streak > 0 && (
-              <span className={`iris-pill ${s.streak >= COMBO_AT ? "!bg-amber-400 !text-amber-950" : ""}`}>
+              <span className={`iris-pill ${s.streak >= CHARGE_MAX ? "!bg-amber-400 !text-amber-950" : ""}`}>
                 <FaBolt /> {s.streak} in a row
               </span>
             )}
@@ -228,10 +259,10 @@ export default function BossHUD() {
             <div key={banner.key} className="pointer-events-none absolute inset-x-0 top-[22%] flex justify-center">
               <div
                 className={`center-card font-display rounded-full px-8 py-3 text-3xl font-semibold shadow-2xl ${
-                  banner.tone === "combo" ? "bg-amber-400 text-amber-950" : "bg-white text-rose-600"
+                  banner.tone === "ready" ? "bg-amber-400 text-amber-950" : "bg-white text-rose-600"
                 }`}
               >
-                {banner.tone === "combo" && <FaBolt className="mr-2 inline" />}
+                {banner.tone === "ready" && <FaBolt className="mr-2 inline" />}
                 {banner.text}
               </div>
             </div>
@@ -311,13 +342,16 @@ export default function BossHUD() {
             </div>
 
             {/* Keyed by question so the typed digits clear for each new question. */}
-            <NumberPad
-              key={`pad-${s.questionIndex}`}
-              onStrike={strike}
-              keyboard={!s.whiteboardOpen}
-              sound={s.soundOn}
-              negative={hasNegatives(level)}
-            />
+            <div className="flex w-full flex-col gap-3 md:w-72">
+              <SpecialButton charge={s.charge} move={move} voice={s.voiceMode} onFire={s.fireSpecial} />
+              <NumberPad
+                key={`pad-${s.questionIndex}`}
+                onStrike={strike}
+                keyboard={!s.whiteboardOpen}
+                sound={s.soundOn}
+                negative={hasNegatives(level)}
+              />
+            </div>
           </div>
         )}
 
@@ -409,7 +443,7 @@ export default function BossHUD() {
       )}
 
       {s.status === "victory" && (
-        <EndCard>
+        <EndCard delayMs={victoryPopMs(s.finisher) + 500}>
           <StarRow count={earned} />
           <div className="font-display mt-3 text-4xl font-semibold text-iris-600">Victory!</div>
           <p className="mt-1 text-base font-bold text-emerald-600">You beat the {level.bossName}!</p>
@@ -478,22 +512,82 @@ function FloatingNumbers({ events, onDone }: { events: DamageEvent[]; onDone: (i
 }
 
 function FloatNumber({ event, onDone }: { event: DamageEvent; onDone: (id: number) => void }) {
-  const delay = event.target === "player" ? PLAYER_HIT_DELAY_MS : BOSS_HIT_DELAY_MS;
+  const delay = event.target === "player" ? PLAYER_HIT_DELAY_MS : event.special ? SPECIAL_HIT_DELAY_MS : BOSS_HIT_DELAY_MS;
   useEffect(() => {
-    const t = setTimeout(() => onDone(event.id), delay + 1100);
+    const t = setTimeout(() => onDone(event.id), delay + 1300);
     return () => clearTimeout(t);
   }, [event.id, delay, onDone]);
   const isBoss = event.target === "boss";
   return (
     <div
-      className={`damage-float font-display pointer-events-none absolute left-1/2 -translate-x-1/2 font-semibold ${
-        isBoss ? "top-[8%] text-5xl" : "bottom-[8%] text-4xl"
-      } ${isBoss ? (event.combo ? "text-amber-300" : "text-white") : "text-rose-300"}`}
+      className={`damage-float font-display pointer-events-none absolute left-1/2 -translate-x-1/2 text-center font-semibold ${
+        isBoss ? (event.special ? "top-[4%] text-7xl text-amber-300" : "top-[8%] text-5xl text-white") : "bottom-[8%] text-4xl text-rose-300"
+      }`}
       style={{ animationDelay: `${delay}ms`, opacity: 0, textShadow: "0 3px 12px rgba(0,0,0,0.6)" }}
     >
       −{event.amount}
-      {event.combo && <span className="ml-2 text-2xl">COMBO!</span>}
+      {event.special && <span className="block text-2xl tracking-widest">CRITICAL!</span>}
     </div>
+  );
+}
+
+/** The special-attack button: three charge pips, and a glowing hero move once it's full. */
+function SpecialButton({ charge, move, voice, onFire }: { charge: number; move: SpecialMove; voice: boolean; onFire: () => boolean }) {
+  const ready = charge >= CHARGE_MAX;
+  return (
+    <button
+      onClick={() => onFire()}
+      disabled={!ready}
+      aria-label={ready ? `Use special attack: ${move.name}` : `Special attack, ${charge} of ${CHARGE_MAX} charged`}
+      className={`iris-panel pointer-events-auto relative w-full overflow-hidden px-4 py-3 text-left transition-transform ${
+        ready ? "special-ready cursor-pointer hover:scale-[1.02] active:scale-95" : "cursor-default"
+      }`}
+      style={ready ? { background: `linear-gradient(135deg, ${move.color}, ${move.glow})` } : undefined}
+    >
+      <span className="relative z-10 flex items-center justify-between gap-3">
+        <span className={`font-display flex items-center gap-2 text-lg font-semibold ${ready ? "text-white drop-shadow" : "text-ink"}`}>
+          <FaBolt className={ready ? "" : "text-ink/30"} />
+          {ready ? `${move.name}!` : "Special"}
+        </span>
+        <span className="flex gap-1.5" aria-hidden>
+          {Array.from({ length: CHARGE_MAX }, (_, i) => (
+            <span
+              key={i}
+              className={`h-3 w-7 rounded-full transition-all duration-300 ${i < charge ? "" : "bg-ink/10"}`}
+              style={i < charge ? { background: ready ? "#fff" : move.color, boxShadow: `0 0 10px ${move.color}` } : undefined}
+            />
+          ))}
+        </span>
+      </span>
+      <span className={`relative z-10 mt-1 block text-xs font-bold ${ready ? "text-white/90" : "text-ink-soft"}`}>
+        {ready
+          ? voice
+            ? "Tap, press Space, or say \u201cspecial\u201d!"
+            : "Tap or press Space to unleash it!"
+          : `${CHARGE_MAX - charge} more right in a row to charge`}
+      </span>
+    </button>
+  );
+}
+
+/** The special's big moment: the move name slams in, the screen glows, then flashes on impact. */
+function SpecialCinematic({ move, calm }: { move: SpecialMove; calm: boolean }) {
+  return (
+    <>
+      <div
+        className="special-vignette pointer-events-none absolute inset-0 z-40"
+        style={{ boxShadow: `inset 0 0 180px 50px ${move.color}88` }}
+      />
+      <div className="pointer-events-none absolute inset-x-0 top-[26%] z-50 flex justify-center">
+        <div
+          className="special-slam font-display text-6xl font-bold uppercase tracking-wide text-white md:text-8xl"
+          style={{ textShadow: `0 0 24px ${move.color}, 0 0 60px ${move.color}, 0 6px 0 rgba(0,0,0,0.35)` }}
+        >
+          {move.name}!
+        </div>
+      </div>
+      {!calm && <div className="screen-flash-white pointer-events-none absolute inset-0 z-50" style={{ animationDelay: `${SPECIAL_HIT_DELAY_MS}ms` }} />}
+    </>
   );
 }
 
@@ -555,7 +649,7 @@ function NumberPad({
     </button>
   );
   return (
-    <div className="iris-panel pointer-events-auto w-full p-4 md:w-72">
+    <div className="iris-panel pointer-events-auto w-full p-4">
       <div className="font-display mb-3 flex h-14 items-center justify-center rounded-2xl bg-ink/5 text-4xl font-semibold text-ink">
         {entry ? `${neg ? "−" : ""}${entry}` : <span className="text-ink/25">{neg ? "−?" : "?"}</span>}
       </div>

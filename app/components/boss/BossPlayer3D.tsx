@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useBossStore } from "@/app/lib/bossStore";
+import { FX, LANDS } from "@/app/lib/bossFx";
 import { useHubStore } from "@/app/lib/hubStore";
 import { type CharacterSlug } from "@/app/lib/characters";
 import CatModel from "@/app/components/shared/CatModel";
@@ -16,22 +17,29 @@ export default function BossPlayer3D() {
   const slug = useHubStore((s) => s.selectedCharacter) ?? "bear";
   const playerHitKey = useBossStore((s) => s.playerHitKey);
   const bossHitKey = useBossStore((s) => s.bossHitKey);
+  const specialKey = useBossStore((s) => s.specialKey);
   const status = useBossStore((s) => s.status);
 
   // The boss winds up and its attack flies over before the hero gets knocked back.
   const hitClock = useRef<number | null>(null);
   const castClock = useRef<number | null>(null);
   const cheerClock = useRef(-1);
+  const specialClock = useRef<number | null>(null);
 
   useEffect(() => {
     if (playerHitKey === 0) return;
-    hitClock.current = -1.0;
+    hitClock.current = -LANDS.boss;
   }, [playerHitKey]);
 
   useEffect(() => {
     if (bossHitKey === 0) return;
     castClock.current = 0;
   }, [bossHitKey]);
+
+  useEffect(() => {
+    if (specialKey === 0) return;
+    specialClock.current = 0;
+  }, [specialKey]);
 
   useEffect(() => {
     if (status === "victory") cheerClock.current = 0;
@@ -55,6 +63,28 @@ export default function BossPlayer3D() {
       if (c > 0.3) {
         castClock.current = null;
         body.current.position.z = 0;
+      }
+    }
+
+    // Special: rise up and power up, then kick back as the beam fires.
+    if (specialClock.current !== null) {
+      specialClock.current += delta;
+      const c = specialClock.current;
+      const charge = FX.specialCharge;
+      const end = charge + FX.specialBeam + 0.25;
+      if (c < charge) {
+        const k = c / charge;
+        body.current.position.y = bob + k * 0.35 + Math.sin(c * 40) * 0.015 * k;
+        body.current.scale.setScalar(1 + k * 0.12);
+      } else if (c < end) {
+        const k = (c - charge) / (end - charge);
+        body.current.position.y = bob + 0.35 * (1 - k);
+        body.current.position.z = Math.sin(Math.min(1, k * 3) * Math.PI) * 0.25;
+        body.current.scale.setScalar(1.12 - 0.12 * k);
+      } else {
+        specialClock.current = null;
+        body.current.position.z = 0;
+        body.current.scale.setScalar(1);
       }
     }
 

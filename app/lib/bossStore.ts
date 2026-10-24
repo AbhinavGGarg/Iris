@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { specialFor } from "./bossFx";
+import { useHubStore } from "./hubStore";
 import { buildDeck, DEFAULT_LEVEL, getLevel, isLevelId, newSeed, parseSpokenNumber, type BossQuestion, type LevelId } from "./bossLevels";
 
 export type BattleStatus = "idle" | "battling" | "victory" | "defeat";
@@ -9,7 +11,8 @@ export type DamageEvent = {
   id: number;
   target: "boss" | "player";
   amount: number;
-  combo: boolean;
+  /** A special attack: bigger number, lands later. */
+  special: boolean;
 };
 
 export type LastResult = {
@@ -20,8 +23,9 @@ export type LastResult = {
 
 export const MAX_HP = 100;
 export const HIT_DAMAGE = 10;
-export const COMBO_DAMAGE = 15;
-export const COMBO_AT = 3;
+/** Right answers in a row needed to charge the special attack. */
+export const CHARGE_MAX = 3;
+export const SPECIAL_DAMAGE = 30;
 export const BOSS_DAMAGE = 25;
 
 export function phaseFor(bossHP: number): 1 | 2 | 3 {
@@ -50,6 +54,11 @@ type State = {
   questionIndex: number;
   streak: number;
   bestStreak: number;
+  /** Special attack charge, 0 to CHARGE_MAX. A miss empties it unless it is already full. */
+  charge: number;
+  specialsUsed: number;
+  /** What landed the final blow, so the win screen waits for the right animation. */
+  finisher: "spell" | "special" | null;
   correctAnswers: number;
   wrongAnswers: number;
   hintShown: boolean;
@@ -58,12 +67,12 @@ type State = {
 
   bossHitKey: number;
   playerHitKey: number;
-  comboKey: number;
+  specialKey: number;
   phaseKey: number;
   damageEvents: DamageEvent[];
 
   narration: Narration | null;
-  banner: { key: number; text: string; tone: "combo" | "phase" } | null;
+  banner: { key: number; text: string; tone: "ready" | "phase" } | null;
   lastAgentMessage: string;
   error: string | null;
 
@@ -79,7 +88,9 @@ type State = {
   setSoundOn: (v: boolean) => void;
   /** Pass a seed to replay an exact set of questions (used by tests). */
   startBattle: (voice: boolean, seed?: number) => void;
-  submitAnswer: (raw: string | number, source: AnswerSource) => "hit" | "miss" | "ignored";
+  submitAnswer: (raw: string | number, source: AnswerSource) => "hit" | "miss" | "special" | "ignored";
+  /** Fires the special attack if it is charged. Returns false when it isn't ready. */
+  fireSpecial: () => boolean;
   useHint: () => void;
   getBattleState: () => string;
   dismissDamageEvent: (id: number) => void;
@@ -104,6 +115,9 @@ const battleInitial = {
   questionIndex: 0,
   streak: 0,
   bestStreak: 0,
+  charge: 0,
+  specialsUsed: 0,
+  finisher: null as "spell" | "special" | null,
   correctAnswers: 0,
   wrongAnswers: 0,
   hintShown: false,
@@ -111,7 +125,7 @@ const battleInitial = {
   nudge: false,
   bossHitKey: 0,
   playerHitKey: 0,
-  comboKey: 0,
+  specialKey: 0,
   phaseKey: 0,
   damageEvents: [] as DamageEvent[],
   narration: null,
@@ -160,6 +174,10 @@ export const useBossStore = create<State>((set, get) => ({
     const question = s.currentQuestion();
 
     if (given === null) {
+      if (source === "voice" && typeof raw === "string" && /\b(special|super)\b/i.test(raw) && s.charge >= CHARGE_MAX) {
+        get().fireSpecial();
+        return "special";
+      }
       if (source === "voice") {
         set({
           nudge: true,
@@ -179,8 +197,9 @@ export const useBossStore = create<State>((set, get) => ({
 
     if (given === question.answer) {
       const streak = s.streak + 1;
-      const combo = streak >= COMBO_AT;
-      const dealt = Math.min(combo ? COMBO_DAMAGE : HIT_DAMAGE, s.bossHP);
+      const charge = Math.min(CHARGE_MAX, s.charge + 1);
+      const readyNow = charge === CHARGE_MAX && s.charge < CHARGE_MAX;
+      const dealt = Math.min(HIT_DAMAGE, s.bossHP);
       const bossHP = s.bossHP - dealt;
       const won = bossHP <= 0;
       const newPhase = phaseFor(bossHP);
@@ -192,14 +211,15 @@ export const useBossStore = create<State>((set, get) => ({
       } else {
         line =
           `The player answered ${given}. CORRECT.` +
-          (combo ? ` That is a ${streak} in a row COMBO, a super hit!` : "") +
           (phaseUp ? ` The ${level.bossName} is powering up into a new form!` : "") +
+          (readyNow ? ` That is ${CHARGE_MAX} in a row, so their SPECIAL ATTACK is charged! Tell them to press the special button or say "special" when they're ready.` : "") +
           ` Say one short, excited attack line (max 8 words), then read this next question verbatim: "${next.spoken}"`;
       }
 
       set({
         bossHP,
         streak,
+        charge,
         bestStreak: Math.max(s.bestStreak, streak),
         correctAnswers: s.correctAnswers + 1,
         questionIndex: won ? s.questionIndex : nextIndex,
@@ -207,16 +227,16 @@ export const useBossStore = create<State>((set, get) => ({
         nudge: false,
         lastResult: { correct: true, given, question },
         bossHitKey: s.bossHitKey + 1,
-        comboKey: combo ? s.comboKey + 1 : s.comboKey,
         phaseKey: phaseUp ? s.phaseKey + 1 : s.phaseKey,
-        damageEvents: [...s.damageEvents, { id: ++eventId, target: "boss", amount: dealt, combo }],
+        damageEvents: [...s.damageEvents, { id: ++eventId, target: "boss", amount: dealt, special: false }],
         narration: { key: ++eventId, text: line },
         banner: phaseUp
           ? { key: ++eventId, text: `The ${level.bossName} is powering up!`, tone: "phase" }
-          : combo && !won
-            ? { key: ++eventId, text: `${streak} in a row! Super hit!`, tone: "combo" }
+          : readyNow
+            ? { key: ++eventId, text: "Special attack ready!", tone: "ready" }
             : s.banner,
         status: won ? "victory" : "battling",
+        finisher: won ? "spell" : null,
       });
       if (won) useBossProgress.getState().recordStars(s.level, starsFor(s.wrongAnswers));
       return "hit";
@@ -232,17 +252,49 @@ export const useBossStore = create<State>((set, get) => ({
     set({
       playerHP,
       streak: 0,
+      // A full special stays ready; a half-charged one is lost.
+      charge: s.charge >= CHARGE_MAX ? CHARGE_MAX : 0,
       wrongAnswers: s.wrongAnswers + 1,
       questionIndex: lost ? s.questionIndex : nextIndex,
       hintShown: false,
       nudge: false,
       lastResult: { correct: false, given, question },
       playerHitKey: s.playerHitKey + 1,
-      damageEvents: [...s.damageEvents, { id: ++eventId, target: "player", amount: dealt, combo: false }],
+      damageEvents: [...s.damageEvents, { id: ++eventId, target: "player", amount: dealt, special: false }],
       narration: { key: ++eventId, text: line },
       status: lost ? "defeat" : "battling",
     });
     return "miss";
+  },
+
+  fireSpecial: () => {
+    const s = get();
+    if (s.status !== "battling" || s.charge < CHARGE_MAX) return false;
+    const level = getLevel(s.level);
+    const question = s.currentQuestion();
+    const move = specialFor(useHubStore.getState().selectedCharacter).name;
+    const oldPhase = phaseFor(s.bossHP);
+    const dealt = Math.min(SPECIAL_DAMAGE, s.bossHP);
+    const bossHP = s.bossHP - dealt;
+    const won = bossHP <= 0;
+    const phaseUp = !won && phaseFor(bossHP) !== oldPhase;
+    const line = won
+      ? `The player unleashed their special attack, ${move}, and it was the final blow! The ${level.bossName} is defeated. Shout "${move}!" and then a huge victory cheer, in two short sentences.`
+      : `The player unleashed their special attack, ${move}! It blasts the ${level.bossName} for huge damage${phaseUp ? " and it changes into a new form" : ""}. Shout "${move}!" with one epic line (max 10 words), then read this question again verbatim: "${question.spoken}"`;
+    set({
+      bossHP,
+      charge: 0,
+      specialsUsed: s.specialsUsed + 1,
+      specialKey: s.specialKey + 1,
+      phaseKey: phaseUp ? s.phaseKey + 1 : s.phaseKey,
+      damageEvents: [...s.damageEvents, { id: ++eventId, target: "boss", amount: dealt, special: true }],
+      narration: { key: ++eventId, text: line },
+      banner: phaseUp ? { key: ++eventId, text: `The ${level.bossName} is powering up!`, tone: "phase" } : null,
+      status: won ? "victory" : "battling",
+      finisher: won ? "special" : null,
+    });
+    if (won) useBossProgress.getState().recordStars(s.level, starsFor(s.wrongAnswers));
+    return true;
   },
 
   useHint: () => {
@@ -255,7 +307,8 @@ export const useBossStore = create<State>((set, get) => ({
   getBattleState: () => {
     const s = get();
     const q = s.currentQuestion();
-    return `Player HP: ${s.playerHP}/${MAX_HP}. Boss HP: ${s.bossHP}/${MAX_HP}. Streak: ${s.streak}. Current question: ${q.spoken}`;
+    const special = s.charge >= CHARGE_MAX ? "charged and ready" : `${s.charge} of ${CHARGE_MAX} charged`;
+    return `Player HP: ${s.playerHP}/${MAX_HP}. Boss HP: ${s.bossHP}/${MAX_HP}. Streak: ${s.streak}. Special attack: ${special}. Current question: ${q.spoken}`;
   },
 
   dismissDamageEvent: (id) => set((s) => ({ damageEvents: s.damageEvents.filter((e) => e.id !== id) })),

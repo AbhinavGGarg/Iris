@@ -70,6 +70,20 @@ export const sfx = {
     noise(0.95, 0.3, 0.22);
     tone(90, 0.95, 0.35, "square", 0.07, 50);
   },
+  /** The special is charged: a bright little chime. */
+  ready() {
+    [784, 988, 1318].forEach((f, i) => tone(f, i * 0.08, 0.22, "triangle", 0.1));
+  },
+  /** Special attack: power rising, the beam, then a big boom when it lands. */
+  special(chargeSec: number, beamSec: number) {
+    tone(140, 0, chargeSec, "sawtooth", 0.05, 900);
+    tone(280, 0.1, chargeSec - 0.1, "triangle", 0.05, 1600);
+    tone(70, chargeSec, beamSec, "sawtooth", 0.07, 55);
+    noise(chargeSec, beamSec, 0.18);
+    noise(chargeSec + 0.1, 0.5, 0.4);
+    tone(110, chargeSec + 0.1, 0.6, "square", 0.1, 40);
+    [523, 659, 784].forEach((f, i) => tone(f, chargeSec + 0.15 + i * 0.06, 0.25, "triangle", 0.08));
+  },
   phase() {
     tone(150, 0, 0.8, "sawtooth", 0.05, 600);
   },

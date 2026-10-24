@@ -5,10 +5,11 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { phaseFor, useBossStore } from "@/app/lib/bossStore";
 import { getLevel } from "@/app/lib/bossLevels";
+import { FX, LANDS } from "@/app/lib/bossFx";
 
-/** The spell takes this long to fly from the hero to the boss. */
-const SPELL_TRAVEL = 0.45;
-const WINDUP = 0.6;
+const WINDUP = FX.bossWindup;
+/** The boss flushes this angry red while it winds up an attack. */
+const ANGRY = new THREE.Color("#ff2a1a");
 
 export default function Boss3D() {
   const root = useRef<THREE.Group>(null!);
@@ -23,19 +24,32 @@ export default function Boss3D() {
   const bossHP = useBossStore((s) => s.bossHP);
   const bossHitKey = useBossStore((s) => s.bossHitKey);
   const playerHitKey = useBossStore((s) => s.playerHitKey);
+  const specialKey = useBossStore((s) => s.specialKey);
   const status = useBossStore((s) => s.status);
   const level = useBossStore((s) => s.level);
   const calmMode = useBossStore((s) => s.calmMode);
 
   const hitClock = useRef<number | null>(null);
+  // How hard and how long the current hit shakes the boss (the special hits much harder).
+  const hitPower = useRef(1);
+  const hitDur = useRef(0.6);
   const windClock = useRef<number | null>(null);
   const deathClock = useRef(-1);
   const phaseScale = useRef(1);
 
   useEffect(() => {
     if (bossHitKey === 0) return;
-    hitClock.current = -SPELL_TRAVEL;
+    hitClock.current = -LANDS.spell;
+    hitPower.current = 1;
+    hitDur.current = 0.6;
   }, [bossHitKey]);
+
+  useEffect(() => {
+    if (specialKey === 0) return;
+    hitClock.current = -LANDS.special;
+    hitPower.current = 2.2;
+    hitDur.current = FX.specialBeam + 0.3;
+  }, [specialKey]);
 
   useEffect(() => {
     if (playerHitKey === 0) return;
@@ -43,7 +57,10 @@ export default function Boss3D() {
   }, [playerHitKey]);
 
   useEffect(() => {
-    if (status === "victory") deathClock.current = -SPELL_TRAVEL;
+    if (status === "victory") {
+      const finisher = useBossStore.getState().finisher;
+      deathClock.current = finisher === "special" ? -(LANDS.special + 0.5) : -(LANDS.spell + 0.3);
+    }
     if (status === "idle" || status === "battling") {
       deathClock.current = -1;
       if (root.current) {
@@ -127,8 +144,17 @@ export default function Boss3D() {
       if (w < WINDUP) windScale = 1 + 0.2 * (w / WINDUP);
       else if (w < WINDUP + 0.25) windScale = 1.2 - 0.2 * ((w - WINDUP) / 0.25);
       if (body.current) body.current.position.z = w >= WINDUP && w < WINDUP + 0.25 ? Math.sin(((w - WINDUP) / 0.25) * Math.PI) * 0.6 : 0;
-      if (coreMat.current && w < WINDUP) coreMat.current.emissiveIntensity = 1.6 + (w / WINDUP) * 3;
-      if (w > WINDUP + 0.3) windClock.current = null;
+      if (coreMat.current) {
+        // Flush red as it winds up, then fade back to its own color after the throw.
+        const k = w < WINDUP ? w / WINDUP : Math.max(0, 1 - (w - WINDUP) / 0.3);
+        coreMat.current.emissive.copy(phaseColor).lerp(ANGRY, k * 0.85);
+        coreMat.current.color.copy(phaseColor).lerp(ANGRY, k * 0.85);
+        coreMat.current.emissiveIntensity = 1.6 + k * 0.9;
+      }
+      if (w > WINDUP + 0.3) {
+        windClock.current = null;
+        if (coreMat.current) coreMat.current.emissive.copy(phaseColor);
+      }
     }
     if (deathClock.current < 0 && root.current) root.current.scale.setScalar(phaseScale.current * windScale);
 
@@ -138,13 +164,15 @@ export default function Boss3D() {
     }
     if (hitClock.current !== null && hitClock.current >= 0) {
       const h = hitClock.current;
-      if (h < 0.6 && body.current) {
-        const shake = Math.sin(h * 80) * (calmMode ? 0.05 : 0.18) * (1 - h / 0.6);
+      const dur = hitDur.current;
+      if (h < dur && body.current) {
+        const shake = Math.sin(h * 80) * (calmMode ? 0.05 : 0.18) * hitPower.current * (1 - h / dur);
         body.current.position.x = shake;
         body.current.position.z = shake * 0.5;
       }
       if (coreMat.current) {
-        const flash = h < 0.18 ? 1 - h / 0.18 : 0;
+        const flashLen = 0.18 * hitPower.current;
+        const flash = h < flashLen ? 1 - h / flashLen : 0;
         coreMat.current.emissiveIntensity = 1.6 + flash * 4.5;
         coreMat.current.color.lerpColors(
           phaseColor,
@@ -152,7 +180,7 @@ export default function Boss3D() {
           flash,
         );
       }
-      if (hitClock.current > 0.65) {
+      if (hitClock.current > dur + 0.05) {
         hitClock.current = null;
         if (body.current) {
           body.current.position.x = 0;
@@ -169,8 +197,10 @@ export default function Boss3D() {
     if (status === "victory" && root.current) {
       deathClock.current += delta;
       const d = Math.max(0, deathClock.current);
-      root.current.rotation.z = Math.sin(d * 12) * 0.15 * Math.max(0, 1 - d / 1.6);
-      root.current.scale.setScalar(Math.max(0, phaseScale.current * (1 - d * 0.6)));
+      // Shudder, swell, then pop as the victory explosions go off.
+      root.current.rotation.z = Math.sin(d * 18) * 0.2 * Math.max(0, 1 - d / 1.3);
+      const swell = d < 1.0 ? 1 + d * 0.25 : Math.max(0, 1.25 * (1 - (d - 1.0) / 0.25));
+      root.current.scale.setScalar(Math.max(0, phaseScale.current * swell));
     }
   });
 
