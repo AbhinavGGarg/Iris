@@ -17,7 +17,7 @@ Most educational apps quietly assume a child can read dense text, aim a mouse, a
 Iris has four worlds. Each one pairs a subject with a different way of playing.
 
 **🧮 Boss Battle — Math**
-Face off against a boss in a shadowy arena. Each correct answer lands a hit. Questions range from simple arithmetic up to early calculus, and players who prefer to work it out by hand can sketch on a whiteboard that Gemini reads and checks.
+Face off against a boss in a glowing arena across four levels: adding to 10, adding and subtracting to 20, times tables, and word problems. Say the answer out loud or tap it on the number pad, and your hero fires a spell. Three right in a row is a combo for extra damage, and the boss changes form as its health drops. A miss shows the worked answer step by step, a Hint button gives a nudge, and you can sketch on a whiteboard that Gemini checks. Beat a level to earn up to three stars. "Play without voice" works with no microphone, and Calm mode turns off screen shake and flashing.
 
 **🌲 Word Adventure — Reading, Spelling & ASL**
 Walk a forest trail, answer reading and spelling challenges, and collect keys to unlock the next stretch of path. A camera-powered signing overlay recognizes fingerspelled letters, so kids can spell words with their hands.
@@ -86,6 +86,8 @@ ELEVENLABS_API_KEY=sk_...
 ELEVENLABS_AGENT_ID=agent_...
 HACKDAVIS_GEMINI_API_KEY=...
 ```
+
+The whiteboard grader uses `gemini-2.5-flash` by default, which works on Gemini's free tier. Set `HACKDAVIS_GEMINI_MODEL` to use a different model.
 
 **2. Start the web app.**
 
