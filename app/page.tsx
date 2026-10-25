@@ -10,7 +10,7 @@ const WORLDS = [
   { src: "/topic-cards/topic-adventure.jpg", alt: "Forest trail from Word Adventure", subject: "ASL & reading", game: "Word Adventure", dot: "bg-emerald-500" },
   { src: "/topic-cards/topic-boss.jpg", alt: "Glowing arena from Boss Battle", subject: "Math", game: "Boss Battle", dot: "bg-rose-500" },
   { src: "/topic-cards/topic-maze.jpg", alt: "Night hedge maze from Maze Quest", subject: "Science", game: "Maze Quest", dot: "bg-sky-500" },
-  { src: "/topic-cards/topic-garden-v3.png", alt: "Quiet cottage garden with a stone path and lily pond", subject: "Feelings", game: "Feelings Garden", dot: "bg-rose-500" },
+  { src: "/topic-cards/topic-garden-v4.png", alt: "Simple garden path through grass and green plants", subject: "Feelings", game: "Feelings Garden", dot: "bg-rose-500" },
 ];
 
 const STEPS = [

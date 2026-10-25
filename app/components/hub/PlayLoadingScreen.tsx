@@ -7,7 +7,7 @@ const WORLD_PREVIEWS = [
   { name: "Math", image: "/topic-cards/topic-boss.jpg", className: "math" },
   { name: "Words", image: "/topic-cards/topic-adventure.jpg", className: "words" },
   { name: "Explore", image: "/topic-cards/topic-maze.jpg", className: "explore" },
-  { name: "Feelings", image: "/topic-cards/topic-garden-v3.png", className: "feelings" },
+  { name: "Feelings", image: "/topic-cards/topic-garden-v4.png", className: "feelings" },
 ];
 
 type PlayLoadingScreenProps = {
