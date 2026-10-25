@@ -85,44 +85,46 @@ export default function SelectTopicPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full flex-col bg-paper text-ink">
-      <HubHeader step={1} backHref="/" />
+    <main className="flex min-h-dvh w-full flex-col bg-paper text-ink">
+      <HubHeader step={1} backHref="/" wide />
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-16 pt-4">
-        <h1 className="font-display text-4xl font-semibold sm:text-5xl">Where to today?</h1>
-        <p className="mt-3 text-lg text-ink-soft">Pick a world. You can switch any time.</p>
+      <div className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col px-6 pb-10 pt-4 sm:px-8 lg:px-12">
+        <h1 className="font-display text-4xl font-semibold sm:text-5xl 2xl:text-6xl">Where to today?</h1>
+        <p className="mt-3 text-lg text-ink-soft sm:text-xl">Pick a world. You can switch any time.</p>
 
-        <div className="mt-10 grid w-full gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid w-full gap-6 sm:grid-cols-2 xl:flex-1 xl:grid-cols-4">
           {TOPICS.map((t) => (
-            <button
+            <article
               key={t.topic}
-              type="button"
-              onClick={() => pick(t.topic)}
-              className={`iris-card group flex w-full flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-1 focus:outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-sun ${t.hover}`}
+              className={`iris-card group flex min-w-0 flex-col overflow-hidden transition-colors duration-200 ${t.hover}`}
             >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-ink">
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-ink xl:aspect-auto xl:min-h-64 xl:flex-1">
                 <Image
                   src={t.imageSrc}
                   alt={t.imageAlt}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                  className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                  sizes="(min-width: 1800px) 408px, (min-width: 1280px) calc((100vw - 168px) / 4), (min-width: 1024px) calc((100vw - 120px) / 2), (min-width: 640px) calc((100vw - 88px) / 2), calc(100vw - 48px)"
+                  className="object-cover transition duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                   priority={t.topic === "science"}
                 />
               </div>
 
-              <div className="flex flex-1 flex-col p-5">
+              <div className="flex flex-1 flex-col p-6 xl:flex-none 2xl:p-8">
                 <div className="flex items-center gap-2 text-sm font-bold text-ink-soft">
                   <span className={`h-2.5 w-2.5 rounded-full ${t.dot}`} />
                   {t.subject}
                 </div>
-                <h2 className="font-display mt-1.5 text-2xl font-semibold">{t.game}</h2>
-                <p className="mt-2 flex-1 text-[15px] leading-relaxed text-ink-soft">{t.blurb}</p>
-                <span className="mt-5 inline-flex items-center gap-2 font-display text-lg font-semibold text-iris-500 transition group-hover:gap-3">
-                  Play {t.title} <FiArrowRight />
-                </span>
+                <h2 className="font-display mt-2 text-2xl font-semibold 2xl:text-3xl">{t.game}</h2>
+                <p className="mt-3 flex-1 text-base leading-relaxed text-ink-soft xl:min-h-[4.875rem] 2xl:min-h-[5.5rem] 2xl:text-lg">{t.blurb}</p>
+                <button
+                  type="button"
+                  onClick={() => pick(t.topic)}
+                  className="iris-btn iris-btn-primary mt-6 min-h-14 w-full px-5 py-3 text-xl"
+                >
+                  Play {t.title} <FiArrowRight aria-hidden="true" />
+                </button>
               </div>
-            </button>
+            </article>
           ))}
         </div>
       </div>

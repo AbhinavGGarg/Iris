@@ -2,9 +2,9 @@ import Link from "next/link";
 import { FiArrowLeft } from "react-icons/fi";
 import IrisMark from "@/app/components/brand/IrisMark";
 
-export default function HubHeader({ step, backHref }: { step: 1 | 2; backHref: string }) {
+export default function HubHeader({ step, backHref, wide = false }: { step: 1 | 2; backHref: string; wide?: boolean }) {
   return (
-    <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+    <nav className={`mx-auto flex w-full items-center justify-between py-6 ${wide ? "max-w-[1800px] px-6 sm:px-8 lg:px-12" : "max-w-6xl px-6"}`}>
       <Link href="/" className="font-display flex items-center gap-2 text-2xl font-semibold text-ink">
         <IrisMark size={30} className="text-ink" />
         Iris
