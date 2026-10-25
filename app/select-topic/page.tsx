@@ -19,6 +19,15 @@ type TopicCard = {
   hover: string;
 };
 
+// Cover crops scale landscape images by height in the tall desktop cards.
+// Smaller screens use a 4:3 frame, so allow 1.125x its width for the 3:2 sources.
+const TOPIC_IMAGE_SIZES = [
+  "(min-width: 1280px) max(408px, 100dvh)",
+  "(min-width: 1024px) calc(56.25vw - 67.5px)",
+  "(min-width: 640px) calc(56.25vw - 49.5px)",
+  "calc(112.5vw - 54px)",
+].join(", ");
+
 const TOPICS: TopicCard[] = [
   {
     topic: "math",
@@ -103,7 +112,8 @@ export default function SelectTopicPage() {
                   src={t.imageSrc}
                   alt={t.imageAlt}
                   fill
-                  sizes="(min-width: 1800px) 408px, (min-width: 1280px) calc((100vw - 168px) / 4), (min-width: 1024px) calc((100vw - 120px) / 2), (min-width: 640px) calc((100vw - 88px) / 2), calc(100vw - 48px)"
+                  quality={90}
+                  sizes={TOPIC_IMAGE_SIZES}
                   className="object-cover transition duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                   priority={t.topic === "science"}
                 />

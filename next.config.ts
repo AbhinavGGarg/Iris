@@ -7,6 +7,9 @@ const BACKEND_URL =
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
+  images: {
+    qualities: [75, 90],
+  },
   async rewrites() {
     if (!BACKEND_URL) return [];
     return [
