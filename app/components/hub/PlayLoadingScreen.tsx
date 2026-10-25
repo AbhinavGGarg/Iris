@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { FiBookOpen, FiCompass, FiHeart, FiPlus } from "react-icons/fi";
-import IrisMark from "@/app/components/brand/IrisMark";
+import Image from "next/image";
+
+const WORLD_PREVIEWS = [
+  { name: "Math", image: "/topic-cards/topic-boss.jpg", className: "math" },
+  { name: "Words", image: "/topic-cards/topic-adventure.jpg", className: "words" },
+  { name: "Explore", image: "/topic-cards/topic-maze.jpg", className: "explore" },
+  { name: "Feelings", image: "/topic-cards/topic-garden-v2.png", className: "feelings" },
+];
 
 type PlayLoadingScreenProps = {
   exiting: boolean;
@@ -34,17 +40,27 @@ export default function PlayLoadingScreen({ exiting, showRecovery, onDismiss }: 
     >
       <div className="iris-launch-content">
         <div className="iris-launch-art" aria-hidden="true">
-          <div className="iris-launch-orbit" />
-          <div className="iris-launch-logo"><IrisMark size={88} /></div>
-          <span className="iris-launch-symbol iris-launch-symbol-math"><FiPlus /></span>
-          <span className="iris-launch-symbol iris-launch-symbol-reading"><FiBookOpen /></span>
-          <span className="iris-launch-symbol iris-launch-symbol-explore"><FiCompass /></span>
-          <span className="iris-launch-symbol iris-launch-symbol-feelings"><FiHeart /></span>
+          {WORLD_PREVIEWS.map((world) => (
+            <div key={world.name} className={`iris-launch-card iris-launch-card-${world.className}`}>
+              <div className="iris-launch-photo">
+                <Image
+                  src={world.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 220px, 320px"
+                  quality={90}
+                  loading="eager"
+                  className="object-cover"
+                />
+              </div>
+              <span className="iris-launch-card-label">{world.name}</span>
+            </div>
+          ))}
         </div>
 
-        <h2 id="iris-launch-title" className="font-display text-4xl font-semibold text-ink sm:text-5xl">Let&apos;s play.</h2>
+        <h2 id="iris-launch-title" className="font-display text-3xl font-medium text-ink sm:text-4xl">A little adventure awaits.</h2>
         <p id="iris-launch-status" role="status" className="mt-3 text-lg text-ink-soft">
-          {showRecovery ? "This is taking a little longer." : "Opening your worlds…"}
+          {showRecovery ? "This is taking a little longer." : "Getting your worlds ready…"}
         </p>
         <div className="iris-launch-dots" aria-hidden="true"><span /><span /><span /></div>
 

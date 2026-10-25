@@ -6,8 +6,9 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import PlayLoadingScreen from "./PlayLoadingScreen";
 
 const StartPlayContext = createContext<(() => void) | null>(null);
-const INTRO_DURATION_MS = 600;
-const EXIT_DURATION_MS = 180;
+const INTRO_DURATION_MS = 2400;
+const REDUCED_MOTION_DURATION_MS = 1200;
+const EXIT_DURATION_MS = 400;
 
 type PlayTransitionState = {
   fromPath: string;
@@ -61,8 +62,9 @@ export function PlayTransitionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!transition || pathname === transition.fromPath) return;
 
-    // Navigation starts immediately; only the overlay waits for its brief intro.
-    const remaining = transition.reducedMotion ? 0 : Math.max(0, INTRO_DURATION_MS - (performance.now() - transition.startedAt));
+    // Keep the preview readable while the destination loads underneath it.
+    const introDuration = transition.reducedMotion ? REDUCED_MOTION_DURATION_MS : INTRO_DURATION_MS;
+    const remaining = Math.max(0, introDuration - (performance.now() - transition.startedAt));
     const fadeTimer = window.setTimeout(() => setExiting(true), remaining);
     const finishTimer = window.setTimeout(dismiss, remaining + (transition.reducedMotion ? 0 : EXIT_DURATION_MS));
     return () => {
