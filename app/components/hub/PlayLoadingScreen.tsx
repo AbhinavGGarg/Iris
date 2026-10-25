@@ -47,8 +47,9 @@ export default function PlayLoadingScreen({ exiting, showRecovery, onDismiss }: 
                   src={world.image}
                   alt=""
                   fill
-                  sizes="(max-width: 640px) 220px, 320px"
-                  quality={90}
+                  // Match the homepage so the transition reuses its cached images.
+                  sizes="(max-width: 1024px) 50vw, 320px"
+                  quality={75}
                   loading="eager"
                   className="object-cover"
                 />
