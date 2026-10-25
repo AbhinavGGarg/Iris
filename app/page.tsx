@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import IrisMark from "@/app/components/brand/IrisMark";
+import { PlayLink } from "@/app/components/hub/PlayTransition";
 
 const WORLDS = [
   { src: "/topic-cards/topic-adventure.jpg", alt: "Forest trail from Word Adventure", subject: "ASL & reading", game: "Word Adventure", dot: "bg-emerald-500" },
@@ -33,9 +34,9 @@ export default function Home() {
           <Link href="/select-topic" className="hidden text-[15px] font-bold text-ink-soft transition hover:text-ink sm:block">
             Games
           </Link>
-          <Link href="/select-topic" className="iris-btn iris-btn-primary px-5 py-2.5 text-[15px]">
+          <PlayLink className="iris-btn iris-btn-primary px-5 py-2.5 text-[15px]">
             Play now
-          </Link>
+          </PlayLink>
         </div>
       </nav>
 
@@ -61,9 +62,9 @@ export default function Home() {
             Nobody has to type.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
-            <Link href="/select-topic" className="iris-btn iris-btn-primary px-8 py-4 text-lg">
+            <PlayLink className="iris-btn iris-btn-primary px-8 py-4 text-lg">
               Start playing <FiArrowRight />
-            </Link>
+            </PlayLink>
             <a href="#how" className="text-base font-bold text-ink underline decoration-sun decoration-[3px] underline-offset-[6px] transition hover:text-iris-600">
               See how it works
             </a>

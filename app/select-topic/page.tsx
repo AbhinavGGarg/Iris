@@ -98,7 +98,7 @@ export default function SelectTopicPage() {
       <HubHeader step={1} backHref="/" wide />
 
       <div className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col px-6 pb-10 pt-4 sm:px-8 lg:px-12">
-        <h1 className="font-display text-4xl font-semibold sm:text-5xl 2xl:text-6xl">Where to today?</h1>
+        <h1 tabIndex={-1} className="font-display text-4xl font-semibold focus:outline-none sm:text-5xl 2xl:text-6xl">Where to today?</h1>
         <p className="mt-3 text-lg text-ink-soft sm:text-xl">Pick a world. You can switch any time.</p>
 
         <div className="mt-8 grid w-full gap-6 sm:grid-cols-2 xl:flex-1 xl:grid-cols-4">
