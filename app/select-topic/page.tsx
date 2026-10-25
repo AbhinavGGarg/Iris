@@ -74,9 +74,9 @@ const TOPICS: TopicCard[] = [
     game: "Feelings Garden",
     blurb:
       "Visit your neighbors, name how they feel, and pick kind ways to help.",
-    imageSrc: "/topic-cards/topic-garden-v2.png",
+    imageSrc: "/topic-cards/topic-garden-v3.png",
     imageAlt:
-      "Sunlit cottage garden with colorful flowers, a winding stone path, and a lily pond",
+      "Quiet cottage garden with soft green foliage, a winding stone path, and a lily pond",
     subject: "Feelings",
     dot: "bg-rose-500",
     hover: "hover:border-rose-400",
