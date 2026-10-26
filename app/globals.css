@@ -247,7 +247,7 @@ body {
   animation: pulseGlow 1.6s ease-in-out infinite;
 }
 
-/* ── Number Clash animations ─────────────────────────────────── */
+/* ── Boss Battle animations ─────────────────────────────────── */
 
 @keyframes bossFloat {
   0%, 100% { transform: translateY(0px) scale(1); }
@@ -290,7 +290,7 @@ body {
 .damage-float { animation: damageFloat 1.0s ease-out forwards; }
 .screen-flash-red { animation: screenFlashRed 0.62s ease-out forwards; }
 
-/* Number Clash special attack */
+/* Boss Battle special attack */
 @keyframes specialSlam {
   0% { opacity: 0; transform: scale(2.6) rotate(-6deg); }
   12% { opacity: 1; transform: scale(0.9) rotate(-3deg); }

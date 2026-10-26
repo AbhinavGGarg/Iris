@@ -16,7 +16,7 @@ Most educational apps quietly assume a child can read dense text, aim a mouse, a
 
 Iris has four worlds. Each one pairs a subject with a different way of playing.
 
-**🧮 Number Clash — Math**
+**🧮 Boss Battle — Math**
 Face off against a boss in a glowing arena. Pick your grade, from kindergarten to 8th grade, then one of three levels, each with its own boss: counting and adding for the youngest players, then times tables, long division, fractions, order of operations, percents, exponents, equations, negative numbers, and the Pythagorean theorem by 8th grade. The numbers are new every fight, so there's nothing to memorize. Say the answer out loud or tap it on the number pad, and your hero fires a spell. Three right in a row charges your hero's special attack (Fox Fire, Bear Quake, Laser Blast or Star Pounce): press the button, hit Space, or say "special" to fire a beam that does triple damage. The boss winds up and throws fireballs back, and it changes form as its health drops. A miss shows the worked answer step by step, a Hint button gives a nudge, and you can sketch on a whiteboard that Gemini checks. Beat a level to earn up to three stars, and the game remembers your grade. "Play without voice" works with no microphone, and Calm mode turns off screen shake and flashing.
 
 **🌲 Sign Trail — Reading, Spelling & ASL**
@@ -25,7 +25,7 @@ Walk a forest trail, answer reading and spelling challenges, and collect keys to
 **🌀 Star Maze — Science & Exploration**
 Find your way through a foggy, procedurally built hedge maze. Every science question you answer correctly earns another step toward the exit.
 
-**🌷 Kindness Village — Social-Emotional Learning**
+**🌷 Feelings Garden — Social-Emotional Learning**
 Visit four neighbors in a sunny village. Each one has a little moment (a dropped ice cream, a toppled block tower, a thunderstorm, a birthday), and their face shows how they feel. Name the feeling, then pick a kind way to help, and a flower blooms by their house. There's no losing here: a wrong guess gets a gentle clue. You can play by talking, or tap the picture cards with "Play without voice".
 
 ---

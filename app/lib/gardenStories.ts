@@ -183,7 +183,7 @@ export const NEIGHBORS: Neighbor[] = [
 ];
 
 export const WIN_LINE =
-  "You helped every neighbor! Kindness Village is in full bloom. Thank you for being such a kind friend!";
+  "You helped every neighbor! The Feelings Garden is in full bloom. Thank you for being such a kind friend!";
 
 function normalize(raw: string): string {
   return ` ${raw.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim()} `;

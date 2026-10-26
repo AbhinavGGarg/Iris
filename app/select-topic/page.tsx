@@ -30,12 +30,12 @@ const TOPIC_IMAGE_SIZES = [
 const TOPICS: TopicCard[] = [
   {
     topic: "math",
-    game: "Number Clash",
+    game: "Boss Battle",
     blurb:
       "Battle 27 bosses from kindergarten to 8th grade. Get 3 right in a row to charge your special attack.",
     imageSrc: "/topic-cards/topic-boss.jpg",
     imageAlt:
-      "Dark circular arena with dramatic red and magenta lighting, where Number Clash battles happen",
+      "Dark circular arena with dramatic red and magenta lighting like the boss battle",
     subject: "Math",
     dot: "bg-rose-500",
     hover: "hover:border-rose-400",
@@ -66,7 +66,7 @@ const TOPICS: TopicCard[] = [
   },
   {
     topic: "feelings",
-    game: "Kindness Village",
+    game: "Feelings Garden",
     blurb:
       "Visit your neighbors, name how they feel, and pick a kind way to help. A flower blooms each time.",
     imageSrc: "/topic-cards/topic-garden-v4.png",

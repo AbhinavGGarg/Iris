@@ -225,7 +225,7 @@ export default function BossHUD() {
             ← Home
           </button>
           <div className="flex items-center gap-2">
-            <span className="iris-pill font-display text-base">Number Clash</span>
+            <span className="iris-pill font-display text-base">Boss Battle</span>
             {s.status !== "idle" && (
               <span className="iris-pill">
                 {grade.label} · {level.skill}
@@ -366,7 +366,7 @@ export default function BossHUD() {
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-y-auto py-20">
           <div className="center-card iris-panel pointer-events-auto mx-4 w-full max-w-2xl p-7">
             <div className="text-center">
-              <div className="font-display text-3xl font-semibold text-ink">Number Clash</div>
+              <div className="font-display text-3xl font-semibold text-ink">Boss Battle</div>
               <p className="mt-1 text-[15px] text-ink-soft">Answer math questions to power up your attacks. Pick your grade, then a level:</p>
             </div>
 
