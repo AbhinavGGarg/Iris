@@ -145,7 +145,10 @@ export default function BossHUD() {
       s.setError(null);
       s.startBattle(true);
       const res = await fetch(`/api/signed-url?game=boss&character=${slug}`);
-      if (!res.ok) throw new Error(`Signed URL fetch failed: ${res.status}`);
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(body?.error ?? `Voice couldn't start (error ${res.status})`);
+      }
       const { signedUrl, error: apiErr } = await res.json();
       if (apiErr) throw new Error(apiErr);
       const lvl = useBossStore.getState().level;
