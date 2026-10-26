@@ -1,6 +1,7 @@
 "use client";
 
 import { useConversation } from "@elevenlabs/react";
+import { useOpeningLine, withOpeningLine } from "@/app/lib/voiceOpening";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import {
@@ -73,6 +74,7 @@ export default function GardenHUD() {
 
   const router = useRouter();
   const conv = useConversation();
+  const armOpening = useOpeningLine(conv.status, conv.sendUserMessage);
   const connected = conv.status === "connected";
   const muted = conv.isMuted;
   const [starting, setStarting] = useState(false);
@@ -111,12 +113,12 @@ export default function GardenHUD() {
       }
       const { signedUrl, error: apiErr } = await res.json();
       if (apiErr) throw new Error(apiErr);
+      armOpening();
       conv.startSession({
         signedUrl,
         overrides: {
           agent: {
-            prompt: { prompt: buildGardenSystemPrompt(slug) },
-            firstMessage: buildGardenFirstMessage(slug),
+            prompt: { prompt: withOpeningLine(buildGardenSystemPrompt(slug), buildGardenFirstMessage(slug)) },
           },
         },
       });

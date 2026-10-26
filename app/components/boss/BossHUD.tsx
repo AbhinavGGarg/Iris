@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useConversation } from "@elevenlabs/react";
+import { useOpeningLine, withOpeningLine } from "@/app/lib/voiceOpening";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -41,6 +42,7 @@ const victoryPopMs = (finisher: "spell" | "special" | null) => (finisher === "sp
 export default function BossHUD() {
   const router = useRouter();
   const conv = useConversation();
+  const armOpening = useOpeningLine(conv.status, conv.sendUserMessage);
   const connected = conv.status === "connected";
   const muted = conv.isMuted;
 
@@ -152,12 +154,17 @@ export default function BossHUD() {
       const { signedUrl, error: apiErr } = await res.json();
       if (apiErr) throw new Error(apiErr);
       const lvl = useBossStore.getState().level;
+      armOpening();
       conv.startSession({
         signedUrl,
         overrides: {
           agent: {
-            prompt: { prompt: buildBossSystemPrompt(slug, lvl) },
-            firstMessage: buildBossFirstMessage(slug, lvl, useBossStore.getState().currentQuestion()),
+            prompt: {
+              prompt: withOpeningLine(
+                buildBossSystemPrompt(slug, lvl),
+                buildBossFirstMessage(slug, lvl, useBossStore.getState().currentQuestion()),
+              ),
+            },
           },
         },
       });

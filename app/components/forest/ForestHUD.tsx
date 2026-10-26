@@ -1,6 +1,7 @@
 "use client";
 
 import { useConversation } from "@elevenlabs/react";
+import { useOpeningLine, withOpeningLine } from "@/app/lib/voiceOpening";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FaMicrophone, FaMicrophoneSlash, FaKey, FaLeaf, FaHandPaper, FaArrowUp, FaTrophy, FaTree } from "react-icons/fa";
@@ -33,6 +34,7 @@ export default function ForestHUD() {
 
   const router = useRouter();
   const conv = useConversation();
+  const armOpening = useOpeningLine(conv.status, conv.sendUserMessage);
   const connected = conv.status === "connected";
   const isSpeaking = conv.isSpeaking;
   const muted = conv.isMuted;
@@ -85,12 +87,12 @@ export default function ForestHUD() {
       }
       const { signedUrl, error: apiErr } = await res.json();
       if (apiErr) throw new Error(apiErr);
+      armOpening();
       conv.startSession({
         signedUrl,
         overrides: {
           agent: {
-            prompt: { prompt: FOREST_SYSTEM_PROMPT },
-            firstMessage: buildForestFirstMessage(),
+            prompt: { prompt: withOpeningLine(FOREST_SYSTEM_PROMPT, buildForestFirstMessage()) },
           },
         },
       });

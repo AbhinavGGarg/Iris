@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useConversation } from "@elevenlabs/react";
+import { useOpeningLine, withOpeningLine } from "@/app/lib/voiceOpening";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FaMicrophone, FaMicrophoneSlash, FaShoePrints, FaMapMarkerAlt, FaHeadphones } from "react-icons/fa";
@@ -30,6 +31,7 @@ export default function HUD() {
 
   const router = useRouter();
   const conv = useConversation();
+  const armOpening = useOpeningLine(conv.status, conv.sendUserMessage);
   const connected = conv.status === "connected";
   const isSpeaking = conv.isSpeaking;
   const muted = conv.isMuted;
@@ -86,12 +88,12 @@ export default function HUD() {
       if (apiErr) throw new Error(apiErr);
       setStatus("playing");
       const videoQs = useGameStore.getState().videoQuestions ?? undefined;
+      armOpening();
       conv.startSession({
         signedUrl,
         overrides: {
           agent: {
-            prompt: { prompt: buildSystemPrompt(slug, videoQs) },
-            firstMessage: buildFirstMessage(slug, videoQs),
+            prompt: { prompt: withOpeningLine(buildSystemPrompt(slug, videoQs), buildFirstMessage(slug, videoQs)) },
           },
         },
       });
