@@ -8,7 +8,8 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - **Zustand** for state: one store per game plus `hubStore`
 - **ElevenLabs Conversational AI** (`@elevenlabs/react`) for the voice buddy and its client tools
 - **Tailwind CSS v4** for styling, with design tokens and the `iris-*` UI classes in `app/globals.css`
-- **FastAPI** backend in `backend/` for ASL recognition and video-to-questions
+- **MediaPipe Tasks (in the browser)** for ASL fingerspelling: `app/lib/aslRecognizer.ts` + `app/lib/aslModel.ts`
+- **FastAPI** backend in `backend/` for video-to-questions (optional; hidden when not running)
 - TypeScript (strict)
 
 ## Routes
@@ -38,6 +39,7 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - Keep game flows deterministic, with the same input giving the same result every time.
 - **Boss Battle: the game judges, the agent narrates.** `bossStore.submitAnswer` checks every answer (voice, number pad, or whiteboard) against `bossLevels.ts`, then sends the agent a `[GAME EVENT]` line to read out. The agent never decides hits, so voice and screen can't drift apart.
 - **Boss questions** are generated in `app/lib/bossLevels.ts`: each level has a `make(rng)` template, and every fight builds a fresh 16-question deck from a seed (same seed, same deck). Answers must be whole numbers (set `negatives: true` on a level to show the pad's minus key), and the last step must state the answer.
+- **ASL reading runs in the browser.** MediaPipe finds the hand, then `aslModel.ts` (a port of `backend/model/landmark_model.pth`, weights in `public/asl/landmark-mlp.bin`) picks the letter. Read the camera frame un-mirrored (only the preview is mirrored) and flip left hands: the model was trained on un-mirrored right hands. `npm run dev`/`build` copy MediaPipe's wasm into `public/mediapipe-wasm` (gitignored).
 - **Boss effects:** hit timings live in `app/lib/bossFx.ts` (`FX`, `LANDS`), so the 3D effects, damage numbers and sounds land together. `BossFx3D` draws every glow as one additive particle cloud plus pooled rings and the beam; never add or remove lights mid-fight (it recompiles shaders). `BossArena3D frameloop="never"` lets a test page step frames with `advance()`.
 
 ## Run

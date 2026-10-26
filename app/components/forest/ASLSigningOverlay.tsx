@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useConversation } from "@elevenlabs/react";
 import { useForestStore } from "@/app/lib/forestStore";
 import { forestAnswerMatches } from "@/app/lib/forestQuestions";
-import { BACKEND_URL } from "@/app/lib/backend";
+import { loadAslRecognizer, type AslRecognizer } from "@/app/lib/aslRecognizer";
+import { MIN_CONFIDENCE } from "@/app/lib/aslModel";
 
 export default function ASLSigningOverlay() {
   const signingMode = useForestStore((s) => s.signingMode);
@@ -19,6 +20,11 @@ export default function ASLSigningOverlay() {
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingInFlight = useRef(false);
+  // Reads letters in the browser (MediaPipe hand tracking + our small letter model).
+  const readerRef = useRef<AslRecognizer | null>(null);
+  const [readerState, setReaderState] = useState<"loading" | "ready" | "error">("loading");
+  const [handSeen, setHandSeen] = useState(false);
+  const [cameraError, setCameraError] = useState("");
 
   const [detectedLetter, setDetectedLetter] = useState("");
   const [confidence, setConfidence] = useState(0);
@@ -31,7 +37,7 @@ export default function ASLSigningOverlay() {
   // Start/stop webcam + polling when signing mode toggles
   useEffect(() => {
     if (signingMode) {
-      startWebcam().then(startPolling);
+      Promise.all([startWebcam(), prepareReader()]).then(startPolling);
     } else {
       stopPolling();
       stopWebcam();
@@ -61,11 +67,22 @@ export default function ASLSigningOverlay() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
       streamRef.current = stream;
+      setCameraError("");
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
     } catch {
-      // Permission denied or no camera - signing mode will show no feed
+      setCameraError("Camera blocked. Allow camera access to sign.");
+    }
+  }
+
+  async function prepareReader() {
+    try {
+      readerRef.current = await loadAslRecognizer();
+      setReaderState("ready");
+    } catch (e) {
+      setReaderState("error");
+      setDebug((d) => ({ ...d, lastError: e instanceof Error ? e.message : String(e) }));
     }
   }
 
@@ -86,7 +103,7 @@ export default function ASLSigningOverlay() {
   }
 
   async function pollASL() {
-    if (pollingInFlight.current) return;
+    if (pollingInFlight.current || !readerRef.current) return;
     if (!videoRef.current || videoRef.current.readyState < 2) {
       setDebug((d) => ({ ...d, lastError: `video not ready (readyState=${videoRef.current?.readyState ?? "null"})` }));
       return;
@@ -97,25 +114,17 @@ export default function ASLSigningOverlay() {
       canvas.width = 320;
       canvas.height = 240;
       const ctx = canvas.getContext("2d")!;
-      // Mirror horizontally to match what the model was trained on
-      ctx.save();
-      ctx.translate(320, 0);
-      ctx.scale(-1, 1);
+      // Read the frame as the camera sees it. The model was trained on un-mirrored
+      // frames; only the preview on screen is mirrored, so it feels like a mirror.
       ctx.drawImage(videoRef.current, 0, 0, 320, 240);
-      ctx.restore();
-      const b64 = canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
-      const res = await fetch(`${BACKEND_URL}/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: b64 }),
-        signal: AbortSignal.timeout(500),
-      });
-      const data: { letter: string; confidence: number; model_used: string } = await res.json();
-      setDetectedLetter(data.letter ?? "");
-      setConfidence(data.confidence ?? 0);
+      const guess = readerRef.current.read(canvas);
+      const sure = guess.confidence >= MIN_CONFIDENCE;
+      setHandSeen(guess.letter !== "");
+      setDetectedLetter(sure ? guess.letter : "");
+      setConfidence(sure ? guess.confidence : 0);
       setDebug((d) => ({
-        raw: `letter="${data.letter || "(none)"}" conf=${((data.confidence ?? 0) * 100).toFixed(1)}%`,
-        modelUsed: data.model_used ?? "?",
+        raw: `letter="${guess.letter || "(none)"}" conf=${(guess.confidence * 100).toFixed(1)}%`,
+        modelUsed: "in browser",
         pollCount: d.pollCount + 1,
         lastError: "",
       }));
@@ -188,7 +197,13 @@ export default function ASLSigningOverlay() {
         />
         {/* Detected letter badge */}
         <div className="iris-pill absolute bottom-3 left-1/2 -translate-x-1/2 justify-center">
-          {detectedLetter ? (
+          {cameraError ? (
+            <span className="text-xs font-bold text-rose-600">{cameraError}</span>
+          ) : readerState === "loading" ? (
+            <span className="text-xs font-bold text-ink-soft">Loading hand reader…</span>
+          ) : readerState === "error" ? (
+            <span className="text-xs font-bold text-rose-600">Hand reader didn&apos;t load. Try again.</span>
+          ) : detectedLetter ? (
             <>
               <span className="font-display text-2xl font-semibold text-iris-600">{detectedLetter}</span>
               <span className="ml-1 text-xs font-bold text-ink-soft">{Math.round(confidence * 100)}%</span>
@@ -197,7 +212,7 @@ export default function ASLSigningOverlay() {
             <span
               className="text-xs font-bold text-ink-soft"
             >
-              No hand detected
+              {handSeen ? "Hold the sign steady…" : "No hand detected"}
             </span>
           )}
         </div>

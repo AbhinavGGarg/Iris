@@ -49,7 +49,8 @@ Players never have to type. They speak, sign, or draw, and the game reacts right
 - **Google Gemini** for grading handwritten math
 - **Zustand** for state, with one store per game and a shared hub store
 - **Tailwind CSS v4** for styling
-- **FastAPI**, **PyTorch**, and **MediaPipe** on the backend for ASL hand-sign recognition
+- **MediaPipe** hand tracking plus a small letter model, running right in the browser for ASL fingerspelling
+- **FastAPI** on the optional Python backend for turning videos into maze questions
 
 ---
 
@@ -69,15 +70,15 @@ app/
 ├── lib/                  stores, question banks, and companion personas
 └── api/                  voice-session auth and drawing grader
 backend/
-├── main.py               FastAPI server for ASL prediction and voice auth
-└── model/                trained hand-sign models
+├── main.py               FastAPI server for video-to-questions (and the original ASL model)
+└── model/                trained hand-sign models (exported to public/asl for the browser)
 ```
 
 ---
 
 ## Running it locally
 
-**You'll need** Node.js 18 or newer and npm. For the ASL backend, you'll also need Python 3.
+**You'll need** Node.js 18 or newer and npm. ASL signing runs in the browser, so Python is only needed for the optional video-to-questions backend.
 
 **1. Add your keys.** Create `.env.local` in the project root:
 
@@ -98,7 +99,7 @@ npm run dev
 
 Then visit http://localhost:3000.
 
-**3. (Optional) Start the ASL backend.**
+**3. (Optional) Start the video-to-questions backend.**
 
 ```bash
 cd backend
@@ -118,4 +119,4 @@ ELEVENLABS_API_KEY=sk_...
 GEMINI_API_KEY=...
 ```
 
-Every push to `main` redeploys. The Python backend doesn't run on Vercel, so ASL hand-signing and video-to-questions are hidden on the hosted site. To bring them back, deploy `backend/` somewhere that runs Python and set `NEXT_PUBLIC_BACKEND_URL` and `BACKEND_URL` to its address.
+Every push to `main` redeploys. ASL hand-signing works on the hosted site because it runs in the browser. The Python backend doesn't run on Vercel, so the maze's video-to-questions upload is hidden there. To bring it back, deploy `backend/` somewhere that runs Python and set `NEXT_PUBLIC_BACKEND_URL` and `BACKEND_URL` to its address.

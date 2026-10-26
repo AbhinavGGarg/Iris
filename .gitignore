@@ -48,3 +48,6 @@ venv/
 
 # claude code
 .claude/settings.local.json
+
+# MediaPipe wasm, copied from node_modules by scripts/copy-mediapipe-wasm.mjs
+/public/mediapipe-wasm
