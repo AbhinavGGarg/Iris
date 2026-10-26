@@ -119,7 +119,3 @@ GEMINI_API_KEY=...
 ```
 
 Every push to `main` redeploys. The Python backend doesn't run on Vercel, so ASL hand-signing and video-to-questions are hidden on the hosted site. To bring them back, deploy `backend/` somewhere that runs Python and set `NEXT_PUBLIC_BACKEND_URL` and `BACKEND_URL` to its address.
-
-## Credits
-
-Iris grew out of a project first prototyped at HackDavis 2026.
