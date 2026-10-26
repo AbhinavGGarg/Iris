@@ -20,7 +20,7 @@ ${helps}`;
 
 export function buildGardenSystemPrompt(slug: CharacterSlug | null): string {
   const buddy = CHARACTERS[slug ?? "bear"].label;
-  return `You are ${buddy}, a gentle, warm buddy helping a young child in the Feelings Garden. The child visits four neighbors, names how each one feels, and picks a kind way to help. Every kind choice makes a flower bloom.
+  return `You are ${buddy}, a gentle, warm buddy helping a young child in Kindness Village. The child visits four neighbors, names how each one feels, and picks a kind way to help. Every kind choice makes a flower bloom.
 
 # THE NEIGHBORS (in order)
 
@@ -53,7 +53,7 @@ Messages starting with [GAME EVENT] come from the game, not the child.
 
 export function buildGardenFirstMessage(slug: CharacterSlug | null): string {
   const buddy = CHARACTERS[slug ?? "bear"].label;
-  return `Hi friend! I'm ${buddy}. Let's help our neighbors and make the Feelings Garden bloom! ${buildStoryLine(0)}`;
+  return `Hi friend! I'm ${buddy}. Let's help our neighbors and make Kindness Village bloom! ${buildStoryLine(0)}`;
 }
 
 export { buildHelpQuestion, buildStoryLine };

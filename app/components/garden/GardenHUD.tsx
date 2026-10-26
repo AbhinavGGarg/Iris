@@ -177,7 +177,7 @@ export default function GardenHUD() {
               ← Home
             </button>
             <div className="iris-pill flex-col !items-start !gap-0 !rounded-2xl !px-4 !py-2">
-              <div className="font-display text-base font-semibold text-ink">Feelings Garden</div>
+              <div className="font-display text-base font-semibold text-ink">Kindness Village</div>
               <div className="text-xs font-semibold text-ink-soft">Name the feeling → help a friend → grow a flower</div>
             </div>
           </div>
@@ -318,7 +318,7 @@ export default function GardenHUD() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-rose-100 text-3xl text-rose-500">
               <FaSeedling />
             </div>
-            <div className="font-display mt-4 text-3xl font-semibold text-ink">Feelings Garden</div>
+            <div className="font-display mt-4 text-3xl font-semibold text-ink">Kindness Village</div>
             <p className="mt-1 text-sm font-bold text-rose-500">Help your neighbors feel better</p>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
               Visit four neighbors. Name how each one feels, then pick a kind way to help. Every kind choice makes a flower bloom.

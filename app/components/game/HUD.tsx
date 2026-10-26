@@ -186,7 +186,7 @@ export default function HUD() {
               className="iris-pill text-base"
               style={displayFont}
             >
-              {persona.emoji} Maze Quest
+              {persona.emoji} Star Maze
             </span>
           </div>
 
@@ -267,7 +267,7 @@ export default function HUD() {
                 className="mt-4 text-3xl font-semibold text-ink"
                 style={displayFont}
               >
-                Maze Quest
+                Star Maze
               </div>
               <p
                 className="mt-1 text-sm font-bold text-sky-600"

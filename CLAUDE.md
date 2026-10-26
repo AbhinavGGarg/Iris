@@ -15,10 +15,10 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - `/`: home
 - `/select-topic`: pick a world (Math, ASL, Explore, Feelings)
 - `/select-character`: pick a buddy
-- `/play/boss`: Math boss battle (grades K–8, 3 levels each, number pad or voice, special attacks, stars)
-- `/play/adventure`: reading + ASL forest trail
-- `/play/maze`: science maze
-- `/play/garden`: feelings garden (name the feeling, pick a kind way to help)
+- `/play/boss`: Number Clash, the math boss battle (grades K–8, 3 levels each, number pad or voice, special attacks, stars)
+- `/play/adventure`: Sign Trail, reading + ASL on a forest path
+- `/play/maze`: Star Maze, science questions in a maze
+- `/play/garden`: Kindness Village (name the feeling, pick a kind way to help)
 
 ## Shared contracts
 - **`hubStore`** (`app/lib/hubStore.ts`) holds `selectedTopic` and `selectedCharacter`. Every game reads from it.
@@ -36,7 +36,7 @@ Voice-first learning games. Players pick a world, pick a buddy, and play by spea
 - **ElevenLabs client tools:** the agent calls `useConversationClientTool('toolName', handler)`. See `app/components/game/AgentBridge.tsx`.
 - **R3F scene shape:** a `<Canvas>` parent, then lighting and `<Environment>`, then `<Suspense>` around models, with postprocessing last.
 - Keep game flows deterministic, with the same input giving the same result every time.
-- **Boss Battle: the game judges, the agent narrates.** `bossStore.submitAnswer` checks every answer (voice, number pad, or whiteboard) against `bossLevels.ts`, then sends the agent a `[GAME EVENT]` line to read out. The agent never decides hits, so voice and screen can't drift apart.
+- **Number Clash: the game judges, the agent narrates.** `bossStore.submitAnswer` checks every answer (voice, number pad, or whiteboard) against `bossLevels.ts`, then sends the agent a `[GAME EVENT]` line to read out. The agent never decides hits, so voice and screen can't drift apart.
 - **Boss questions** are generated in `app/lib/bossLevels.ts`: each level has a `make(rng)` template, and every fight builds a fresh 16-question deck from a seed (same seed, same deck). Answers must be whole numbers (set `negatives: true` on a level to show the pad's minus key), and the last step must state the answer.
 - **Boss effects:** hit timings live in `app/lib/bossFx.ts` (`FX`, `LANDS`), so the 3D effects, damage numbers and sounds land together. `BossFx3D` draws every glow as one additive particle cloud plus pooled rings and the beam; never add or remove lights mid-fight (it recompiles shaders). `BossArena3D frameloop="never"` lets a test page step frames with `advance()`.
 

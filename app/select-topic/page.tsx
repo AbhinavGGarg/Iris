@@ -9,7 +9,6 @@ import { useHubStore, type Topic } from "@/app/lib/hubStore";
 
 type TopicCard = {
   topic: Topic;
-  title: string;
   game: string;
   blurb: string;
   imageSrc: string;
@@ -31,49 +30,45 @@ const TOPIC_IMAGE_SIZES = [
 const TOPICS: TopicCard[] = [
   {
     topic: "math",
-    title: "Math",
-    game: "Boss Battle",
+    game: "Number Clash",
     blurb:
-      "Solve math problems to power up your attacks and defeat the arena boss.",
+      "Battle 27 bosses from kindergarten to 8th grade. Get 3 right in a row to charge your special attack.",
     imageSrc: "/topic-cards/topic-boss.jpg",
     imageAlt:
-      "Dark circular arena with dramatic red and magenta lighting like the boss battle",
+      "Dark circular arena with dramatic red and magenta lighting, where Number Clash battles happen",
     subject: "Math",
     dot: "bg-rose-500",
     hover: "hover:border-rose-400",
   },
   {
     topic: "spelling_asl",
-    title: "ASL",
-    game: "Word Adventure",
+    game: "Sign Trail",
     blurb:
-      "Spell words and practice signing as you hike a forest trail, zone by zone.",
+      "Read, spell and sign your way down a glowing forest path, unlocking a new stretch with every key.",
     imageSrc: "/topic-cards/topic-adventure.jpg",
     imageAlt:
-      "Sunlit forest trail through green woods like the Word Adventure journey",
+      "Sunlit forest trail through green woods, like the path in Sign Trail",
     subject: "ASL & reading",
     dot: "bg-emerald-500",
     hover: "hover:border-emerald-500",
   },
   {
     topic: "science",
-    title: "Explore",
-    game: "Maze Quest",
+    game: "Star Maze",
     blurb:
-      "Answer science questions to earn steps and find your way out of the maze.",
+      "Answer science questions to earn steps and guide your buddy through the maze to the portal.",
     imageSrc: "/topic-cards/topic-maze.jpg",
     imageAlt:
-      "Nighttime hedge maze with purple fog and lit paths, matching the Maze Quest scene",
+      "Nighttime hedge maze with purple fog and lit paths, matching Star Maze",
     subject: "Science",
     dot: "bg-sky-500",
     hover: "hover:border-sky-500",
   },
   {
     topic: "feelings",
-    title: "Feelings",
-    game: "Feelings Garden",
+    game: "Kindness Village",
     blurb:
-      "Visit your neighbors, name how they feel, and pick kind ways to help.",
+      "Visit your neighbors, name how they feel, and pick a kind way to help. A flower blooms each time.",
     imageSrc: "/topic-cards/topic-garden-v4.png",
     imageAlt:
       "Simple garden path through grass and green plants",
@@ -131,7 +126,7 @@ export default function SelectTopicPage() {
                   onClick={() => pick(t.topic)}
                   className="iris-btn iris-btn-primary mt-6 min-h-14 w-full px-5 py-3 text-xl"
                 >
-                  Play {t.title} <FiArrowRight aria-hidden="true" />
+                  Play {t.game} <FiArrowRight aria-hidden="true" />
                 </button>
               </div>
             </article>
